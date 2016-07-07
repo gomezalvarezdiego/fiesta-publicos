@@ -54,7 +54,7 @@ Recuerda que la visita consta del taller de promoción de lectura que elijas y d
 		</n> 
 	<span>La inscripción y la participación en los talleres es gratuita.</span>
 	</br></br></br>
-	<span>Si tienes dudas o necesitas ayuda durante el proceso, comunícate con nosotros al teléfono <strong>4448691</strong>, extensiones <strong>110-114.</strong></span>
+	<span>Si tienes dudas o necesitas ayuda durante el proceso, comunícate con nosotros al teléfono <strong>3220997</strong>, extensión <strong>102</strong></span>
 	</div> 
 
 
