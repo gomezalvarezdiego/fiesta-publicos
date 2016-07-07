@@ -1,0 +1,26 @@
+#Reseting the database
+
+mysql> truncate table workshop_session;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> delete from user where permission_level=2;
+Query OK, 648 rows affected (0.01 sec)
+
+mysql> delete from user where permission_level=0;
+Query OK, 2 rows affected (0.00 sec)
+
+mysql> truncate table register;
+Query OK, 0 rows affected (0.00 sec)
+
+
+mysql> truncate table institution_user;
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> truncate table groups;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> delete from institution where name='prueba';
+Query OK, 1 row affected (0.01 sec)
+
+mysql> delete from institution where inst_type='Institucion Independiente';
+Query OK, 316 rows affected (0.00 sec)
