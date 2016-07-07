@@ -6,7 +6,7 @@ class DATABASE_CONFIG {
 		'persistent' => false,
 		'host' => 'localhost',
 		'login' => 'mde_book',
-		'password' => 'fiesta0919',
+		'password' => 'M3dd1g103@DBB00K',
 		'database' => 'flc_publicos',
 	);
 }

@@ -1,16 +1,16 @@
-﻿<!-- <div class="explanation">
+﻿<div class="explanation">
 <?php //$this->set('title_for_layout' , 'Ingreso' );?>
 ¡Bienvenido!
 </br></br>
-Este es el portal en el que puedes inscribirte para participar en los talleres de promoción de lectura de la 9ª Fiesta del libro y la cultura.
+Este es el portal en el que puedes inscribirte para participar en los talleres de promoción de lectura de la 10ª Fiesta del libro y la cultura.
 </br></br>
 Tú mismo puedes elegir a qué taller asistir, qué día y a qué hora. Para iniciar el proceso debes registrarte creando un usuario. Si ya lo creaste, ingresa tus datos y realiza la inscripción.
 </br></br>
 En Jardín Lectura Viva te invitamos a leer la vida desde el arte, la música, la ciencia, el cine, la fotografía, la literatura y la pintura. ¡Déjate sorprender!
 </br></br>
 Recuerda que la visita consta del taller de promoción de lectura que elijas y de un recorrido guiado, de una hora, por los espacios de la Fiesta.
-</div> -->
-<div class="explanation">
+</div>
+<!-- <div class="explanation">
 	¡Ya están cerradas las inscripciones vía web para los talleres de fomento a la lectura de Jardín Lectura Viva! 
 	
 	</br></br>
@@ -32,7 +32,7 @@ Recuerda que la visita consta del taller de promoción de lectura que elijas y d
 </div>
 <!--  <div class="inscription">
 
-</div>-->
+</div> -->
  	<div class="login">
 		<?php echo $this->Session->flash('auth'); ?>
 		<?php echo $this->Form->create('User'); ?>
