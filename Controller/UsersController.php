@@ -148,10 +148,10 @@ class UsersController extends AppController {
 			endforeach;
 			$Email->to($email_c);
 			$Email->subject('Link para recuperación de contraseña');
-			$link='http://www.mdeinteligente.co/reservasfiestadellibro/users/updateuserlogin/'.$userupd;
+			$link='http://www.fiestadelliborylacultura.com/publicos/users/updateuserlogin/'.$userupd;
 				//$link='http://aplicaciones.medellin.co/reservasfiestadellibro/users/updateuserlogin/'.$userupd;
 				$mensaje= "\n\n¡Bienvenido!
-		\nEste es el portal en el que puedes inscribirte para participar en los talleres de promoción de lectura de la 9ª Fiesta del libro y la cultura.
+		\nEste es el portal en el que puedes inscribirte para participar en los talleres de promoción de lectura de la Fiesta del libro y la cultura.
 		\nTú mismo puedes elegir a qué taller asistir, qué día y a qué hora. Para iniciar el proceso debes registrarte creando un usuario. Si ya lo creaste, ingresa tus datos y realiza la inscripción.
 		\nEn Jardín Lectura Viva te invitamos a leer la vida desde el arte, la música, la ciencia, el cine, la fotografía, la literatura y la pintura. ¡Déjate sorprender!
 		\nRecuerda que la visita consta del taller de promoción de lectura que elijas y de un recorrido guiado, de una hora, por los espacios de la Fiesta.";
