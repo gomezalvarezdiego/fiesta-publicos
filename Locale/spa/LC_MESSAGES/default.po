@@ -118,7 +118,7 @@ msgid "New Public Type"
 msgstr "Nuevo tipo de público"
 
 msgid "New Workshop Session"
-msgstr "Nueva sesión de la carpa"
+msgstr "Nuevo taller en carpa"
 
 msgid "New Specific Condition"
 msgstr "Nueva condición específica"
@@ -170,7 +170,7 @@ msgid "Institution Type"
 msgstr "Tipo Institución"
 
 msgid "Workshop Session"
-msgstr "Sesión de la carpa"
+msgstr "Talleres en carpas"
 
 msgid "Specific Condition"
 msgstr "Condición especifica"
@@ -185,7 +185,7 @@ msgid "List Institutions"
 msgstr "Lista institución"
 
 msgid "List Workshop Sessions"
-msgstr "Lista sesión de las carpas"
+msgstr "Lista de talleres en carpas"
 
 msgid "Workshop"
 msgstr "Carpa"
@@ -218,7 +218,7 @@ msgid "List Public Types"
 msgstr "Lista tipo público"
 
 msgid "Add Workshop Session"
-msgstr "Agregar sesión de la carpa"
+msgstr "Agregar sesión de taller a la carpa"
 
 msgid "New User"
 msgstr "Nuevo usuario"
@@ -239,7 +239,7 @@ msgid "Add Specific Condition"
 msgstr "Agregar condición especifica"
 
 msgid "Workshop Sessions"
-msgstr "Sesiones de la carpa"
+msgstr "Talleres en carpa"
 
 msgid "Id Workshop Session"
 msgstr "Id carpa sesión"
@@ -326,10 +326,10 @@ msgid "Id Institution"
 msgstr "Id institución"
 
 msgid "Edit Workshop Session"
-msgstr "Editar sessión carpa"
+msgstr "Editar sesión carpa"
 
 msgid "Delete Workshop Session"
-msgstr "Eliminar sessión de la carpa"
+msgstr "Eliminar sesión de la carpa"
 
 msgid "Edit Specific Condition"
 msgstr "Editar condición especifica"
