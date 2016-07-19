@@ -1,0 +1,3 @@
+Las siguientes son las tareas que se deben tener en cuenta cuando el código es migrado a un nuevo servidor:
+
+-  Para que funcione la carga de horarios (programación de los talleres)  es necesario modificar la ruta desde donde se lee el archivo cargado.  Esta ruta está en el modelo WorkshopSessions en el método load.

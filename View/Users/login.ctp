@@ -46,9 +46,22 @@ Recuerda que la visita consta del taller de promoción de lectura que elijas y d
 	</br>
 	Líder Públicos Dirigidos
 	</br> 
-	Inscripciones@fiestadellibroylacultura.com
+	inscripcionespublicos@fiestadellibroylacultura.com
+	</br> 
+	Celular: 3234843230
 	</br>
 	Tel: 3220997 Ext 102
+	
+
+	</br></br>
+	Tatiana Sierra Velásquez
+	</br>
+	Líder Instituciones Educativas
+	</br>
+	inscripciones@fiestadellibroylacultura.com
+	</br>
+	Tel: 3220997 Ext 102
+
 </div>
 <!--  <div class="inscription">
 
@@ -68,7 +81,7 @@ Recuerda que la visita consta del taller de promoción de lectura que elijas y d
 		   
 		<?php echo $this->Form->end(__('Ingresar')); ?>
 		<?php echo $this->Html->link(__('Regístrate'), array('controller' => 'institutions', 'action' => 'findinstitution')); ?>
-		 <span><?php echo 'para inscribirte por primera vez' ?></span>
+		 <span><?php echo 'para ingresar por primera vez' ?></span>
 		 </br></br></br>
 		<?php echo $this->Html->link(__('¿Olvidaste tu contraseña?'), array('controller' => 'Users', 'action' => 'finduser')); ?>
 		</n> 
