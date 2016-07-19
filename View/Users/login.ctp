@@ -28,7 +28,19 @@ Recuerda que la visita consta del taller de promoción de lectura que elijas y d
 	</br>
 	Líder Públicos Dirigidos
 	</br> 
-	Inscripciones@fiestadellibroylacultura.com
+	inscripcionespublicos@fiestadellibroylacultura.com
+	</br> 
+	Celular: 3234843230
+	</br>
+	Tel: 3220997 Ext 102
+	
+
+	</br></br>
+	Tatiana Sierra Velásquez
+	</br>
+	Líder Instituciones Educativas
+	</br>
+	inscripciones@fiestadellibroylacultura.com
 	</br>
 	Tel: 3220997 Ext 102
 </div>
