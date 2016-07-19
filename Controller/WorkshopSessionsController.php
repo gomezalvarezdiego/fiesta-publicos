@@ -54,9 +54,11 @@ class WorkshopSessionsController extends AppController {
 				}
 				
 				$dir = $this->request->data['WorkshopSession']['dir'];
+				
+				//La información es cargada a través de la ruta definida en el modelo WorkshopSession.  Cambiar esta ruta si cambia el servidor.
 				$messages = $this->WorkshopSession->import($load);
 				
-				//debug($messages);
+				debug($messages);
 			
 				$this->set('messages',$messages);
 				

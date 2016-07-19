@@ -24,7 +24,7 @@ class WorkshopSession extends AppModel {
 	
 		// set the filename to read CSV from
 		//$filename = 'file\\uploads\\'.$filename;
-		$filename = '/var/www/html/reservasfiestadellibro/webroot/file/uploads/workshop_session/'.$filename;
+		$filename = '/var/www/fiestadellibroylacultura.com/public_html/publicos/webroot/file/uploads/workshop_session/'.$filename;
 		
 		//$filename = 'file' . DS . 'uploads' . DS . 'workshopsession' . DS .$filename;
 		//debug($filename);
