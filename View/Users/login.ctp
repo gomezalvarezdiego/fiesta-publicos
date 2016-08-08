@@ -30,7 +30,7 @@ Recuerda que la visita consta del taller de promoción de lectura que elijas y d
 	</br> 
 	inscripcionespublicos@fiestadellibroylacultura.com
 	</br> 
-	Celular: 3234843230
+	Celular: 3052569184
 	</br>
 	Tel: 3220997 Ext 102
 	
@@ -42,7 +42,9 @@ Recuerda que la visita consta del taller de promoción de lectura que elijas y d
 	</br>
 	inscripciones@fiestadellibroylacultura.com
 	</br>
-	Tel: 3220997 Ext 102
+	Tel: 3220997 Ext 113
+	</br> 
+	Celular: 3108908821
 </div>
 
 <!-- <div class="explanation">
