@@ -41,6 +41,7 @@ class WorkshopsController extends AppController {
 			
 	}
 	
+	//Controlador para la vista que muestra el detalle de una carpa con sus horarios de talleres disponibles para que el usuario seleccione una hora para hacer ese taller. 
 	public function workshop_inscription($id = NULL,$datework=null,$id_group=null)  {
 		
 		$this->set('datework',$datework);
@@ -105,6 +106,7 @@ class WorkshopsController extends AppController {
 	
 	}
 	
+	//Controlador que guarda la inscripción en el taller seleccionado.
 	public function workshop_update($datework=null,$timestamp=null,$id_group=null, $workshopid=null)  {
 		
 		$this->set('datework',$datework);
@@ -129,7 +131,9 @@ class WorkshopsController extends AppController {
 		if($condicionp == 0)
 		{
 			
-			
+		//**TODO:   Cambiar la manera en que abajo se guarda la inscripción.  Ahora debe hacerse en la tabla de grupos.  Asociando el id de workshop_session actual seleccionado al grupo actual.
+
+		//Se guarda la inscripción	
 		$queryupdate="update workshop_session SET group_id = '$id_group' where workshop_session.workshop_day = '$datework' and workshop_session.workshop_time= '$horataller' and workshop_session.workshop_id= '$workshopid'";
 		$tallerupdate=$this->Workshop->query($queryupdate);
 		$this->set(compact('tallerupdate'));
@@ -299,7 +303,7 @@ class WorkshopsController extends AppController {
 			$email_c2 = $correoi2['Institution']['mail'];
 			endforeach;
 			$Email->to($email_c);
-			$Email->cc($email_c2);
+			//$Email->cc($email_c2);  //No enviarle correo a la institución
 			$Email->subject('¡CONFIRMACIÓN DE VISITA A LA FIESTA DEL LIBRO Y LA CULTURA!');
 			//$link='http://aplicaciones.medellin.co/reservasfiestadellibro/workshops/index_inscription/'.$usuario;
 			$mensaje1="\n\n¡Ya está​ lista tu inscripción! Aquí está la información del taller en el que participará el grupo que inscribiste. Recuerda que puedes hacer clic en imprimir para tenerla física.​";
@@ -326,14 +330,14 @@ class WorkshopsController extends AppController {
 			$recomendacion45="\n\n Medellín es lectura viva";
 			$recomendacion46="\n\n ES INDISPENSABLE PRESENTAR ESTE FORMATO AL INGRESO DEL JARDÍN BOTÁNICO";
 			$recomendacion47="\n\n Mayores informes:";
-			$recomendacion48="\n\n Daniela Cardona García";
-			$recomendacion49="\n\n Líder de convocatoria Instituciones Educativas";
-			$recomendacion40="\n\n 4448691 ext. 109";
-			$recomendacion50="\n\n 3104099716";
+			$recomendacion48="\n\n Tatiana Sierra Velásquez";
+			$recomendacion49="\n\n Líder Instituciones Educativas Públicas";
+			$recomendacion40="\n\n 322 09 97 ext. 113";
+			$recomendacion50="\n\n 3108908821";
 			$recomendacion51="\n\n inscripciones@fiestadellibroylacultura.com";
 			$recomendacion52="\n\n Carolina Cortés Duque";
-			$recomendacion53="\n\n Líder Convocatoria Públicos Dirigidos";
-			$recomendacion54="\n\n 4448691 ext 110";
+			$recomendacion53="\n\n Líder Públicos Dirigidos";
+			$recomendacion54="\n\n 322 09 97 ext 102";
 			$recomendacion55="\n\n 3052569184";
 			$recomendacion56="\n\n inscripcionespublicos@fiestadellibroylacultura.com";			
 			$norespuesta="\n\n Este correo es informativo, favor no responder a esta dirección de correo, ya que no se encuentra habilitada para recibir mensajes.";

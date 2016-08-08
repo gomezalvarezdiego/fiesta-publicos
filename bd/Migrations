@@ -1,0 +1,1 @@
+ALTER TABLE  `groups` ADD  `workshop_session_id` INT NOT NULL AFTER  `user_id`

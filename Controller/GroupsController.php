@@ -126,13 +126,16 @@ class GroupsController extends AppController {
 			$SpecificCondition = $data['SpecificCondition']['SpecificCondition'];
 			$initialConditions=count($SpecificCondition);
 			//debug($data);
+
+			//Busca las carpas que cazan con el tipo de público que tiene el grupo
 			$query="SELECT DISTINCT workshop_id
 		    FROM
 			public_type_workshop
 		    WHERE
 			public_type_id = '".$id_public_type_id."'";
 			$workshop = $this->Group->PublicType->query($query);
-    		if($workshop != array())
+    		
+    		if($workshop != array()) //Si el resultado de la consulta no es vacío
       		{
       			$work_ids = array();
       			$reals_id = array();
@@ -141,6 +144,7 @@ class GroupsController extends AppController {
       			}
       			$s_work_ids = implode(",", $work_ids);
 
+      			//Consulta que devuelve todos los ids de los grupos asociados con las carpas que cumplen el tipo de público
       			$query_val = "SELECT group_id FROM workshop_session WHERE workshop_id in  (" . $s_work_ids .")";
 		 		$sql = $this->Group->PublicType->query($query_val);
 		 		$flag = false; //bandera...
@@ -151,7 +155,7 @@ class GroupsController extends AppController {
   					$hasWorkshopSpecific=false;
 
   					foreach ($work_ids as $key => $value) {
-
+  						//Consulta por cada carpa para verificar que cumple con la condición específica
 	  					$query = "SELECT t1.*, ws.id_workshop_session
 						FROM
 						    specific_condition_workshop t1, 
@@ -181,7 +185,7 @@ class GroupsController extends AppController {
 	      				$this->Session->setFlash(__('No hay taller para estas condiciones.'));
 	      				return false;
 	      			}
-	      			else{
+	      			else{ //Si el tipo de público y las condiciones especificas se cumplen, el grupo se puede crear
 	      				$this->Group->create();
 					    $id_user = $this->Session->read('Auth.User.id_user');
 			 		 	$this->set('id_user',$id_user);

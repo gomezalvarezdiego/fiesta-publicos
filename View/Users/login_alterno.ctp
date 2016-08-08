@@ -22,13 +22,13 @@ Recuerda que la visita consta del taller de promoción de lectura que elijas y d
 	</br></br>
 	Para mayor información: 
 	</br></br>
-	Daniela Cardona García 
+	Tatiana Sierra Velásquez 
 	</br>
-	Líder convocatoria Instituciones Educativas
+	Líder Instituciones Educativas Públicas
 	</br> 
 	Inscripciones@fiestadellibroylacultura.com
 	</br>
-	Celular: 310 409 97 16
+	Celular: 310 890 88 21
 </div>
 <!--  <div class="inscription">
 

@@ -207,6 +207,7 @@ class WorkshopSessionsController extends AppController {
 	}
 	
 	public function addworkshop($id_group=null) {		/*,$workshopc =  null*/
+		//Se define el usuario y el grupo para pasarlos a la vista
 		$usuario = $this->Session->read('Auth.User.username');
 		$this->set('usuario',$usuario);
 		$this->set('id_group',$id_group);
@@ -315,6 +316,7 @@ class WorkshopSessionsController extends AppController {
 		
 		$this->set('listadohorarion',$listadohorarion);
 		
+		//Si el usuario ha llenado el formulario lo redirige al controlador que le mostrará los talleres disponibles en la fecha seleccionada.
 		if ($this->request->is('post')) {
 			//$datework= $this->request->data['WorkshopSession']['workshop_day'];
 			$datework= $this->request->data['WorkshopSession']['diataller'];
