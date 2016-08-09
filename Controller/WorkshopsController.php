@@ -41,6 +41,8 @@ class WorkshopsController extends AppController {
 			
 	}
 	
+
+	//Contralador que muestra los horarios disponibles en un taller en el que un grupo se puede inscribir.
 	public function workshop_inscription($id = NULL,$datework=null,$id_group=null)  {
 		
 		$this->set('datework',$datework);
@@ -95,6 +97,8 @@ class WorkshopsController extends AppController {
 		
 		*/
 		
+
+		//Una vez se selecciona la hora y se la da clic al botón de inscripción redirige a workshop_update para guardar la inscripción.
 		if ($this->request->is('post')) {	
 		$horataller= $this->request->data['Workshop']['horataller'];
 		$this->set('horataller',$horataller);
@@ -105,6 +109,8 @@ class WorkshopsController extends AppController {
 	
 	}
 	
+
+	//Guarda una inscripción luego de que el usuario ha seleccionado la hora
 	public function workshop_update($datework=null,$timestamp=null,$id_group=null, $workshopid=null)  {
 		
 		$this->set('datework',$datework);
@@ -129,10 +135,12 @@ class WorkshopsController extends AppController {
 		if($condicionp == 0)
 		{
 			
-			
+		//Consulta para poner el id del grupo en la sesion escogida.
 		$queryupdate="update workshop_session SET group_id = '$id_group' where workshop_session.workshop_day = '$datework' and workshop_session.workshop_time= '$horataller' and workshop_session.workshop_id= '$workshopid'";
 		$tallerupdate=$this->Workshop->query($queryupdate);
 		$this->set(compact('tallerupdate'));
+
+		//TODO: Consulta para poner el id de la sesión en el grupo y quitar la anterior consulta.
 		
 		//register de inscripcion...
 		$usuario = $this->Session->read('Auth.User.username');

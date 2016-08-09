@@ -172,7 +172,7 @@ class WorkshopSessionsController extends AppController {
 		}
 		
 
-		//Luego, en la vista, dependiento del taller que escoja, la vista lo redije al controlador Workshop y a la acci'on workshop_inscription.
+		//Luego, en la vista, dependiento del taller que escoja, la vista lo redije al controlador Workshops y a la acci'on workshop_inscription.
 
 
 
