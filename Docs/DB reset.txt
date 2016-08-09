@@ -24,3 +24,7 @@ Query OK, 1 row affected (0.01 sec)
 
 mysql> delete from institution where inst_type='Institucion Independiente';
 Query OK, 316 rows affected (0.00 sec)
+
+Para borrar todas las inscripciones
+update workshop_session set group_id = 0;
+
