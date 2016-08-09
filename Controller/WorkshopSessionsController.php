@@ -74,7 +74,7 @@ class WorkshopSessionsController extends AppController {
 	
 	}
 
-	
+	//devuelve el listado de todos los talleres que cumplen con las condiciones de un grupo y una fecha escogida.
 	public function workshoplist($datework=null, $id_group=null) {
 
 		$this->set('datework',$datework);
@@ -163,12 +163,21 @@ class WorkshopSessionsController extends AppController {
 		//***************DFGA
 		
 		//debug($taller);
+
+
 		if ($taller == Array ( ))
 		{
 			$this->Session->setFlash(__('En la fecha seleccionada no hay carpas disponibles con los criterios especificados por usted en el registro'));
 			return $this->redirect(array('controller' => 'WorkshopSessions', 'action' => 'addworkshop'));
 		}
 		
+
+		//Luego, en la vista, dependiento del taller que escoja, la vista lo redije al controlador Workshop y a la acci'on workshop_inscription.
+
+
+
+
+
 		//$tallerid=$this->WorkshopSession->query($queryid);
 		//$this->set(compact('tallerid'));
 		
@@ -315,6 +324,7 @@ class WorkshopSessionsController extends AppController {
 		
 		$this->set('listadohorarion',$listadohorarion);
 		
+		//Una vez el usuario selecciona la fecha, se sigue a la vista para mostrar el listado de sesiones de talleres disponibles en esa fecha.
 		if ($this->request->is('post')) {
 			//$datework= $this->request->data['WorkshopSession']['workshop_day'];
 			$datework= $this->request->data['WorkshopSession']['diataller'];

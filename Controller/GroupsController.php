@@ -126,24 +126,29 @@ class GroupsController extends AppController {
 			$SpecificCondition = $data['SpecificCondition']['SpecificCondition'];
 			$initialConditions=count($SpecificCondition);
 			//debug($data);
+
+			//Consulta que devuelve todos los talleres que cumplen con el tipo de público
 			$query="SELECT DISTINCT workshop_id
 		    FROM
 			public_type_workshop
 		    WHERE
 			public_type_id = '".$id_public_type_id."'";
+
 			$workshop = $this->Group->PublicType->query($query);
     		if($workshop != array())
       		{
       			$work_ids = array();
       			$reals_id = array();
+      			//Se guarda en un array todos los ids de esos talleres que cumplen con el tipo de p'ublico
       			foreach ($workshop as $value) {
       				$work_ids[] = $value['public_type_workshop']['workshop_id'];
       			}
       			$s_work_ids = implode(",", $work_ids);
 
+      			//Consulta para buscar todos los id de grupos dentro de las sesiones.  Busca solo en aquellas sesiones que cuadran con el tipo de p'ublico.  Esto se necesita para saber qu'e sesiones estan en cero, es decir que no tienen un grupo asignado
       			$query_val = "SELECT group_id FROM workshop_session WHERE workshop_id in  (" . $s_work_ids .")";
 		 		$sql = $this->Group->PublicType->query($query_val);
-		 		$flag = false; //bandera...
+		 		$flag = false; //bandera...  ¿Hay grupos en cero?
 
   				if($SpecificCondition != ''){
 
@@ -210,7 +215,7 @@ class GroupsController extends AppController {
 			 			}
 			 		}
 			 	}
-			 	else{
+			 	else{  //Si el grupo no tiene condiciones especificas
 		 			$this->Group->create();
 				    $id_user = $this->Session->read('Auth.User.id_user');
 		 		 	$this->set('id_user',$id_user);
@@ -218,8 +223,9 @@ class GroupsController extends AppController {
 		 		 	$data['Group']['user_id']=$id_user;
 		 		 	$data['Group']['creation_date']=date('Y-m-d H:i:s');
 		 			//debug($work_ids);
+		 			//************TODO: Aqu'i se debe poner el workshop_session_id (el id de la sesi[on en la que quedará])
 			
-		 			if ($this->Group->save($data)) {
+		 			if ($this->Group->save($data)) { 
 		 				$id_group = $this->Group->id;
 		 				$this->Session->setFlash(__('The group has been saved.'));
 		 				//debug($id_group);
@@ -227,10 +233,12 @@ class GroupsController extends AppController {
 		 				// $sql = $this->Group->PublicType->query($query_val);
 		 				// $flag = false; //bandera...
 		 				foreach ($sql as $value) {
+		 					//Si la sesión del taller no tiene un grupo asociado, la bandera se pone en true y quiere decir que la sesión está disponible.
 		 					if($value['workshop_session']['group_id'] == '0'){
 		 						$flag = true;
 		 					}
 		 				}
+		 				//Si la sesión está disponible se redirije al controlador de sesiones talleres para agregar el grupo a esa sesión.
 		 				if($flag){
 		 					return $this->redirect(array('controller' => 'WorkshopSessions', 'action' => 'addworkshop',$id_group));
 		 				} else {
