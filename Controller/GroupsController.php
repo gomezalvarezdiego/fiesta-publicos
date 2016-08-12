@@ -145,8 +145,8 @@ class GroupsController extends AppController {
       			}
       			$s_work_ids = implode(",", $work_ids);
 
-      			//Consulta para buscar todos los id de grupos dentro de las sesiones.  Busca solo en aquellas sesiones que cuadran con el tipo de p'ublico.  Esto se necesita para saber qu'e sesiones estan en cero, es decir que no tienen un grupo asignado
-      			$query_val = "SELECT group_id FROM workshop_session WHERE workshop_id in  (" . $s_work_ids .")";
+      			//Consulta para buscar todos los id de grupos que cumplem con el tipo de público.  Busca solo en aquellas sesiones que cuadran con el tipo de p'ublico.  
+      			$query_val = "SELECT group_id, full FROM workshop_session WHERE workshop_id in  (" . $s_work_ids .")";
 		 		$sql = $this->Group->PublicType->query($query_val);
 		 		$flag = false; //bandera...  ¿Hay grupos en cero?
 
@@ -155,19 +155,20 @@ class GroupsController extends AppController {
   					$s_SpecificCondition = implode(",", $SpecificCondition);
   					$hasWorkshopSpecific=false;
 
+  					//Por talleres del conjunto de las que cumplen con el tipo de publico.
   					foreach ($work_ids as $key => $value) {
-
+  						//Consulta para averiguar las sesión que cumplen con la condiciòn especifica definida en el formulario de la vista de este controlador. Adicionalmente debe cumplir con que sea una sesión que no tenga lleno el cupo
 	  					$query = "SELECT t1.*, ws.id_workshop_session
 						FROM
 						    specific_condition_workshop t1, 
-						    workshop_session ws
+						    workshop_session ws,
 						WHERE
 							t1.workshop_id = $value
 					        AND ws.workshop_id = $value
-					        AND ws.group_id = 0
+					        AND ws.full = '0'  
 					        AND specific_condition_id IN ($s_SpecificCondition)
 						group by workshop_id , specific_condition_id					
-	  							 ";
+	  							 "; //Antes, en vez de ws.full estaba ws.group
 
 	  					
 	  					$scq = $this->Group->PublicType->query($query);
@@ -176,12 +177,14 @@ class GroupsController extends AppController {
 	  					//debug($foundConditions);
 	  					//debug($initialConditions);
 
+	  					//Si el nùmero de condiciones especificas del grupo que se està creando es igual al numero de condiciones especificas de la sesión en el ciclo actual (que además es una sesión con cupo disponble) ha encontrado al menos una ocasiòn en que esto se cumple.  Hay al menos una sesión de taller que cumple con el tipo de pùblico y las condiciones especìficas.
 	  					if($initialConditions==$foundConditions){
 	  						$hasWorkshopSpecific=true;
 	  						break;
 	  					}
   					}
- 
+ 					
+ 					//Si no hay al menos una sesiòn de taller que cumpla con el tipo de pùblico y las condiciones especìficas, el grupo no se puede guardar.
 	      			if(!$hasWorkshopSpecific){
 	      				$this->Session->setFlash(__('No hay taller para estas condiciones.'));
 	      				return false;
@@ -199,12 +202,14 @@ class GroupsController extends AppController {
 			 			if ($this->Group->save($data)) {
 			 				$id_group = $this->Group->id;
 			 				$this->Session->setFlash(__('The group has been saved.'));
+			 				//Verifica todas las sesiones para ver si hay al menos una que tenga cupo disponible.
 			 				foreach ($sql as $value) {
-			 					if($value['workshop_session']['group_id'] == '0'){
+			 					//Antes en vez de full estaba group_id
+			 					if($value['workshop_session']['full'] == '0'){
 			 						$flag = true;
 			 					}
 		 					}
-		 				if($flag){
+		 				if($flag){ //Si hay grupos que no tienen lleno el cupo se puede proceder con el siguiente paso.
 		 					return $this->redirect(array('controller' => 'WorkshopSessions', 'action' => 'addworkshop',$id_group));
 		 				} else {
 		 					$this->Session->setFlash(__('Lo sentimos, No hay cupos disponibles para los talleres asignados a este tipo de público.'));
@@ -233,8 +238,8 @@ class GroupsController extends AppController {
 		 				// $sql = $this->Group->PublicType->query($query_val);
 		 				// $flag = false; //bandera...
 		 				foreach ($sql as $value) {
-		 					//Si la sesión del taller no tiene un grupo asociado, la bandera se pone en true y quiere decir que la sesión está disponible.
-		 					if($value['workshop_session']['group_id'] == '0'){
+		 					//Si la sesión del taller no tiene lleno el cupo, la bandera se pone en true y quiere decir que la sesión está disponible.
+		 					if($value['workshop_session']['full'] == '0'){
 		 						$flag = true;
 		 					}
 		 				}

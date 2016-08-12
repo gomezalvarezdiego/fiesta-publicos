@@ -10,7 +10,7 @@ App::import('Controller', 'Groups');
  */
 class WorkshopsController extends AppController {
 	
-	var $uses = array('Workshop','Register','User','Institution','WorkshopSession','PublicType');
+	var $uses = array('Workshop','Register','User','Institution','WorkshopSession','PublicType','Group');
 	
 /**
  * Components
@@ -53,7 +53,7 @@ class WorkshopsController extends AppController {
 		$options = array('conditions' => array('Workshop.' . $this->Workshop->primaryKey => $id));
 		$this->set('taller', $this->Workshop->find('first', $options));
 		
-		$queryday="select distinct workshop_session.workshop_day from workshop_session inner join workshop on  workshop.id_workshop = workshop_session.workshop_id where workshop.id_workshop = '$id' and workshop_session.workshop_day = '$datework' and workshop_session.group_id = 0";
+		$queryday="select distinct workshop_session.workshop_day from workshop_session inner join workshop on  workshop.id_workshop = workshop_session.workshop_id where workshop.id_workshop = '$id' and workshop_session.workshop_day = '$datework' and workshop_session.full = 0";
 		$tallerday=$this->Workshop->query($queryday);
 		//$this->set(compact('tallerday'));
 		
@@ -72,7 +72,7 @@ class WorkshopsController extends AppController {
 		$this->set('tallerdayp',$tallerdayp);
 		
 		
-		$querytime="select distinct workshop_session.workshop_time from workshop_session inner join workshop on  workshop.id_workshop = workshop_session.workshop_id where workshop.id_workshop = '$id' and workshop_session.workshop_day = '$datework' and workshop_session.group_id = 0";
+		$querytime="select distinct workshop_session.workshop_time from workshop_session inner join workshop on  workshop.id_workshop = workshop_session.workshop_id where workshop.id_workshop = '$id' and workshop_session.workshop_day = '$datework' and workshop_session.full = 0";
 		
 		$tallertime=$this->Workshop->query($querytime);
 
@@ -121,26 +121,36 @@ class WorkshopsController extends AppController {
 		
 		$this->set('institutionidp',$institutionidp);
 		
+		//
 		$condicion=$this->Workshop->query("select group_id from workshop_session where group_id = '$id_group'");
 		$this->set('condicion',$condicion);
 		//debug($institutionidp);
 		$condicionp='';
 		foreach ($condicion as $condiciones):
 		$condicionp=$condiciones['workshop_session']['group_id'];
-		
-		
 		endforeach;
 		$this->set('condicionp',$condicionp);
 		
 		if($condicionp == 0)
 		{
 			
-		//Consulta para poner el id del grupo en la sesion escogida.
+		//Consulta para poner el id del grupo en la sesion escogida.  TODO:  Borrar
 		$queryupdate="update workshop_session SET group_id = '$id_group' where workshop_session.workshop_day = '$datework' and workshop_session.workshop_time= '$horataller' and workshop_session.workshop_id= '$workshopid'";
 		$tallerupdate=$this->Workshop->query($queryupdate);
 		$this->set(compact('tallerupdate'));
 
-		//TODO: Consulta para poner el id de la sesión en el grupo y quitar la anterior consulta.
+		//Se busca el id del workshop_session seleccionado (Que cumple con todos los parámetros)
+		$queryfinds="select id_workshop_session from workshop_session where workshop_session.workshop_day = '$datework' and workshop_session.workshop_time= '$horataller' and workshop_session.workshop_id= '$workshopid'";
+		$sessions=$this->Workshop->query($queryfinds);
+		$id_workshop_session='';
+		foreach ($sessions as $session):
+		$id_workshop_session=$session['workshop_session']['id_workshop_session'];
+		endforeach;
+
+
+		//Consulta para poner el id de la sesión en el grupo.
+		$queryupdategroup="update groups SET workshop_session_id = '$id_workshop_session' where groups.id_group='$id_group'";
+		$groupupdate=$this->Group->query($queryupdategroup);
 		
 		//register de inscripcion...
 		$usuario = $this->Session->read('Auth.User.username');

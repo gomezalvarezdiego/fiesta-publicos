@@ -80,7 +80,8 @@ class WorkshopSessionsController extends AppController {
 		$this->set('datework',$datework);
 		
 		$this->set('id_group',$id_group);
-		
+
+			
 		$usuario = $this->Session->read('Auth.User.username');
 		$this->set('usuario',$usuario);
 		//$fields = array('week', 'away_team_id', 'home_team_id');
@@ -147,7 +148,7 @@ class WorkshopSessionsController extends AppController {
 		//debug($resultado);
 		
 		//2.  Se buscan todos los talleres que cumplen con las condiciones de fecha y tipo de público
-		$queryb="select distinct workshop.id_workshop, workshop.name, workshop.description, workshop.entity_id from public_type inner join (public_type_workshop inner join (workshop inner join workshop_session on workshop.id_workshop = workshop_session.workshop_id) on public_type_workshop.workshop_id = workshop.id_workshop) on public_type.id_public_type = public_type_workshop.public_type_id  where workshop_session.workshop_day = '$datework' and workshop_session.group_id = '0' and public_type.name = '$public_typep'";
+		$queryb="select distinct workshop.id_workshop, workshop.name, workshop.description, workshop.entity_id from public_type inner join (public_type_workshop inner join (workshop inner join workshop_session on workshop.id_workshop = workshop_session.workshop_id) on public_type_workshop.workshop_id = workshop.id_workshop) on public_type.id_public_type = public_type_workshop.public_type_id  where workshop_session.workshop_day = '$datework' and workshop_session.full = '0' and public_type.name = '$public_typep'";
 		$talleresotros=$this->WorkshopSession->query($queryb);
 		$talleresconlasdemascondiciones=array();
 		foreach ($talleresotros as $tallerotro){
@@ -245,7 +246,7 @@ class WorkshopSessionsController extends AppController {
 		if ($specific_condition!=array()){
 			foreach ($specific_condition as $condition){
 				$condicion=$condition['specific_condition']['name'];
-				$querya="select distinct workshop_session.workshop_day from specific_condition inner join (specific_condition_workshop inner join (public_type inner join (public_type_workshop inner join (workshop inner join workshop_session on workshop.id_workshop = workshop_session.workshop_id) on public_type_workshop.workshop_id = workshop.id_workshop) on public_type.id_public_type = public_type_workshop.public_type_id) on specific_condition_workshop.workshop_id = workshop.id_workshop) on  specific_condition.id_specific_condition = specific_condition_workshop.specific_condition_id where workshop_session.group_id = '0' and public_type.name = '$public_typep' and (specific_condition.name = '$condicion')";
+				$querya="select distinct workshop_session.workshop_day from specific_condition inner join (specific_condition_workshop inner join (public_type inner join (public_type_workshop inner join (workshop inner join workshop_session on workshop.id_workshop = workshop_session.workshop_id) on public_type_workshop.workshop_id = workshop.id_workshop) on public_type.id_public_type = public_type_workshop.public_type_id) on specific_condition_workshop.workshop_id = workshop.id_workshop) on  specific_condition.id_specific_condition = specific_condition_workshop.specific_condition_id where workshop_session.full = '0' and public_type.name = '$public_typep' and (specific_condition.name = '$condicion')";
 				//$talleresconcondicion=$this->Workshop->SpecificCondition->find('all', array('conditions'=>array('SpecificCondition.name'=>$condition['specific_condition']['name'])));
 				$talleresconcondicion=$this->WorkshopSession->query($querya);
 				array_push($talleres2,$talleresconcondicion);
@@ -273,7 +274,7 @@ class WorkshopSessionsController extends AppController {
 							(workshop inner join workshop_session on workshop.id_workshop = workshop_session.workshop_id) 
 							on public_type_workshop.workshop_id = workshop.id_workshop) 
 						on public_type.id_public_type = public_type_workshop.public_type_id  
-						where workshop_session.group_id = '0' and public_type.name = '$public_typep'";
+						where workshop_session.full = '0' and public_type.name = '$public_typep'";
 			$talleresconcondicion=$this->WorkshopSession->query($querya);
 			//debug($talleresconcondicion);
 			$resultado=$talleresconcondicion;
@@ -285,7 +286,7 @@ class WorkshopSessionsController extends AppController {
 		//debug($resultado);
 		
 		//2.  Se buscan todas la fechas en que existen talleres que cumplen con las condiciones de fecha y tipo de público
-		$queryb="select distinct workshop_session.workshop_day from public_type inner join (public_type_workshop inner join (workshop inner join workshop_session on workshop.id_workshop = workshop_session.workshop_id) on public_type_workshop.workshop_id = workshop.id_workshop) on public_type.id_public_type = public_type_workshop.public_type_id  where workshop_session.group_id = '0' and public_type.name = '$public_typep'";
+		$queryb="select distinct workshop_session.workshop_day from public_type inner join (public_type_workshop inner join (workshop inner join workshop_session on workshop.id_workshop = workshop_session.workshop_id) on public_type_workshop.workshop_id = workshop.id_workshop) on public_type.id_public_type = public_type_workshop.public_type_id  where workshop_session.full = '0' and public_type.name = '$public_typep'";
 		$talleresotros=$this->WorkshopSession->query($queryb);
 		
 		//debug($talleresotros);
