@@ -148,7 +148,7 @@ class UsersController extends AppController {
 			endforeach;
 			$Email->to($email_c);
 			$Email->subject('Link para recuperación de contraseña');
-			$link='http://www.fiestadelliborylacultura.com/publicos/users/updateuserlogin/'.$userupd;
+			$link='http://www.fiestadellibroylacultura.com/publicos/users/updateuserlogin/'.$userupd;
 				//$link='http://aplicaciones.medellin.co/reservasfiestadellibro/users/updateuserlogin/'.$userupd;
 				$mensaje= "\n\n¡Bienvenido!
 		\nEste es el portal en el que puedes inscribirte para participar en los talleres de promoción de lectura de la Fiesta del libro y la cultura.
