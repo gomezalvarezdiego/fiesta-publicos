@@ -173,7 +173,7 @@ class WorkshopsController extends AppController {
 		$cupo_maximo_query = $this->Workshop->query("select room from workshop where id_workshop='$workshopid'");
 		$cupo_maximo_carpa=	$cupo_maximo_query[0]['workshop']['room'];
 	//debug($suma_inscritos."/".$cupo_maximo_carpa);
-		//Si el cupo de la sesión está lleno, se debe poner el valor full=1 en la tabla de sesiones.
+		//Si el cupo de la sesión está lleno, se debe poner el valor full=1 en la tabla de sesiones.  TODO:  Considerar el desfase de 5.  Por ejemplo, si inscribo 37, y el cupo màximo es 40, no se llenará, pero luego nunca habrá forma de que se llene porque el grupo debe tener mìnimo 5 integrantes. 
 		if($suma_inscritos>=$cupo_maximo_carpa){
 			$queryupdatesession=$this->WorkshopSession->query("update workshop_session SET full=1 where workshop_session.id_workshop_session='$id_workshop_session'");
 		}

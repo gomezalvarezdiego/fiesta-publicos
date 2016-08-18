@@ -54,15 +54,25 @@ class GroupsController extends AppController {
 	}
 
 	public function migratescript(){
+		/*
 		$workshops_reservados=$this->WorkshopSession->query("SELECT id_workshop_session, group_id from workshop_session WHERE group_id != '0'" );
 
 		foreach($workshops_reservados as $workshop_reservado){
 			$id_workshop_session=$workshop_reservado['workshop_session']['id_workshop_session'];
 			$group_id=$workshop_reservado['workshop_session']['group_id'];
 			$update_group=$this->Group->query("UPDATE groups SET workshop_session_id='$id_workshop_session' WHERE id_group ='$group_id'");
-			/*debug($id_workshop_session);
-			debug($group_id);*/
+			//debug($id_workshop_session);
+			//debug($group_id);*
 		}
+		*/
+
+		$grupos_llenos=$this->Group->query("SELECT workshop_session_id from groups WHERE members_number='40'" );
+		foreach ($grupos_llenos as $grupo_lleno){
+			$session_id=$grupo_lleno['groups']['workshop_session_id'];
+			$update_session=$this->WorkshopSession->query("UPDATE workshop_session SET full='1' WHERE id_workshop_session ='$session_id'");			
+		}
+
+
 	}
 
 /**
