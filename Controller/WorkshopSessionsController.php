@@ -74,13 +74,14 @@ class WorkshopSessionsController extends AppController {
 	
 	}
 
-	
+	//devuelve el listado de todos los talleres que cumplen con las condiciones de un grupo y una fecha escogida.
 	public function workshoplist($datework=null, $id_group=null) {
 
 		$this->set('datework',$datework);
 		
 		$this->set('id_group',$id_group);
-		
+
+			
 		$usuario = $this->Session->read('Auth.User.username');
 		$this->set('usuario',$usuario);
 		//$fields = array('week', 'away_team_id', 'home_team_id');
@@ -144,31 +145,71 @@ class WorkshopSessionsController extends AppController {
 			$resultado=$talleres2;
 		}
 		
-		//debug($resultado);
+	//debug($resultado);
 		
 		//2.  Se buscan todos los talleres que cumplen con las condiciones de fecha y tipo de público
-		$queryb="select distinct workshop.id_workshop, workshop.name, workshop.description, workshop.entity_id from public_type inner join (public_type_workshop inner join (workshop inner join workshop_session on workshop.id_workshop = workshop_session.workshop_id) on public_type_workshop.workshop_id = workshop.id_workshop) on public_type.id_public_type = public_type_workshop.public_type_id  where workshop_session.workshop_day = '$datework' and workshop_session.group_id = '0' and public_type.name = '$public_typep'";
+		$queryb="select distinct workshop.id_workshop, workshop.name, workshop.description, workshop.room, workshop.entity_id from public_type inner join (public_type_workshop inner join (workshop inner join workshop_session on workshop.id_workshop = workshop_session.workshop_id) on public_type_workshop.workshop_id = workshop.id_workshop) on public_type.id_public_type = public_type_workshop.public_type_id  where workshop_session.workshop_day = '$datework' and workshop_session.full = '0' and public_type.name = '$public_typep'";
 		$talleresotros=$this->WorkshopSession->query($queryb);
 		$talleresconlasdemascondiciones=array();
 		foreach ($talleresotros as $tallerotro){
 			array_push($talleresconlasdemascondiciones,$tallerotro['workshop']);
 			
 		}
-		//debug($talleresconlasdemascondiciones);
+	//debug($talleresconlasdemascondiciones);
 		//3.  Se busca la intersección entre los dos conjuntos de talleres.
-		$resultadofinal=$this->simple_array_intersect($talleresconlasdemascondiciones, $resultado);
-		//4. Se pasa el resultado de la intersección a la vista
+		$resultadosprevios=$this->simple_array_intersect($talleresconlasdemascondiciones, $resultado);
+		//4.  Se filtran los talleres que no tienen cupo suficiente para el número de personas en el grupo
+
+		// 4.1. Consultar el número de integrantes del grupo actual
+		$numero_inscritos_query = $this->Group->query("SELECT members_number FROM `groups` where id_group='$id_group'");
+		$numero_inscritos=$numero_inscritos_query[0]['groups']['members_number'];
+
+		// 4.2. Por cada taller verificar que exista al menos una sesión con suficientes cupos disponibles.
+		$resultadofinal=array();
+		foreach ($resultadosprevios as $resultadoprevio){
+			//Consultar las sesiones que aún tienen cupo
+			$id_workshop=$resultadoprevio['id_workshop'];
+			$cupo_maximo=$resultadoprevio['room'];
+			$sesiones_con_cupo=$this->WorkshopSession->query("SELECT * FROM `workshop_session` where full = 0 and workshop_id='$id_workshop'");
+			//Por cada sesión con cupo, verificar si el número de cupos disponibles es mayor que el nùmero de integrantes del grupo
+			foreach($sesiones_con_cupo as $sesion_con_cupo){
+				$encontrado=false;
+				$id_workshop_session=$sesion_con_cupo['workshop_session']['id_workshop_session'];
+				$numero_inscritos_query = $this->Group->query("SELECT sum(members_number) FROM `groups` where workshop_session_id='$id_workshop_session'");
+				$suma_inscritos=$numero_inscritos_query[0][0]['sum(members_number)'];
+				$cupos_disponibles=$cupo_maximo-$suma_inscritos;
+				if ($numero_inscritos<=$cupos_disponibles){
+					$encontrado=true;
+					break;
+				}
+			}
+			if ($encontrado==true){
+				$resultadofinal[]=$resultadoprevio;
+			}
+
+		}
+
+		//5. Se pasa el resultado de la intersección a la vista
 		$taller=$resultadofinal;
 		$this->set(compact('taller'));
 		//***************DFGA
 		
 		//debug($taller);
+
+
 		if ($taller == Array ( ))
 		{
 			$this->Session->setFlash(__('En la fecha seleccionada no hay carpas disponibles con los criterios especificados por usted en el registro'));
-			return $this->redirect(array('controller' => 'WorkshopSessions', 'action' => 'addworkshop'));
+			//return $this->redirect(array('controller' => 'WorkshopSessions', 'action' => 'addworkshop'));
 		}
 		
+
+		//Luego, en la vista, dependiento del taller que escoja, la vista lo redije al controlador Workshops y a la acci'on workshop_inscription.
+
+
+
+
+
 		//$tallerid=$this->WorkshopSession->query($queryid);
 		//$this->set(compact('tallerid'));
 		
@@ -217,7 +258,7 @@ class WorkshopSessionsController extends AppController {
 		$public_type=$this->WorkshopSession->query("select distinct public_type.name from user inner join (groups inner join public_type on groups.public_type_id = public_type.id_public_type) on groups.user_id = user.id_user where user.username = '$usuario' and groups.id_group = '$id_group'");
 		//debug($public_type);
 		$this->set('public_type',$public_type);
-		
+		$public_typep=null;
 		foreach ($public_type as $public_type){
 			$public_typep=$public_type['public_type']['name'];
 		}
@@ -237,7 +278,7 @@ class WorkshopSessionsController extends AppController {
 		if ($specific_condition!=array()){
 			foreach ($specific_condition as $condition){
 				$condicion=$condition['specific_condition']['name'];
-				$querya="select distinct workshop_session.workshop_day from specific_condition inner join (specific_condition_workshop inner join (public_type inner join (public_type_workshop inner join (workshop inner join workshop_session on workshop.id_workshop = workshop_session.workshop_id) on public_type_workshop.workshop_id = workshop.id_workshop) on public_type.id_public_type = public_type_workshop.public_type_id) on specific_condition_workshop.workshop_id = workshop.id_workshop) on  specific_condition.id_specific_condition = specific_condition_workshop.specific_condition_id where workshop_session.group_id = '0' and public_type.name = '$public_typep' and (specific_condition.name = '$condicion')";
+				$querya="select distinct workshop_session.workshop_day from specific_condition inner join (specific_condition_workshop inner join (public_type inner join (public_type_workshop inner join (workshop inner join workshop_session on workshop.id_workshop = workshop_session.workshop_id) on public_type_workshop.workshop_id = workshop.id_workshop) on public_type.id_public_type = public_type_workshop.public_type_id) on specific_condition_workshop.workshop_id = workshop.id_workshop) on  specific_condition.id_specific_condition = specific_condition_workshop.specific_condition_id where workshop_session.full = '0' and public_type.name = '$public_typep' and (specific_condition.name = '$condicion')";
 				//$talleresconcondicion=$this->Workshop->SpecificCondition->find('all', array('conditions'=>array('SpecificCondition.name'=>$condition['specific_condition']['name'])));
 				$talleresconcondicion=$this->WorkshopSession->query($querya);
 				array_push($talleres2,$talleresconcondicion);
@@ -265,7 +306,7 @@ class WorkshopSessionsController extends AppController {
 							(workshop inner join workshop_session on workshop.id_workshop = workshop_session.workshop_id) 
 							on public_type_workshop.workshop_id = workshop.id_workshop) 
 						on public_type.id_public_type = public_type_workshop.public_type_id  
-						where workshop_session.group_id = '0' and public_type.name = '$public_typep'";
+						where workshop_session.full = '0' and public_type.name = '$public_typep'";
 			$talleresconcondicion=$this->WorkshopSession->query($querya);
 			//debug($talleresconcondicion);
 			$resultado=$talleresconcondicion;
@@ -277,22 +318,66 @@ class WorkshopSessionsController extends AppController {
 		//debug($resultado);
 		
 		//2.  Se buscan todas la fechas en que existen talleres que cumplen con las condiciones de fecha y tipo de público
-		$queryb="select distinct workshop_session.workshop_day from public_type inner join (public_type_workshop inner join (workshop inner join workshop_session on workshop.id_workshop = workshop_session.workshop_id) on public_type_workshop.workshop_id = workshop.id_workshop) on public_type.id_public_type = public_type_workshop.public_type_id  where workshop_session.group_id = '0' and public_type.name = '$public_typep'";
+		$queryb="select distinct workshop_session.workshop_day from public_type inner join (public_type_workshop inner join (workshop inner join workshop_session on workshop.id_workshop = workshop_session.workshop_id) on public_type_workshop.workshop_id = workshop.id_workshop) on public_type.id_public_type = public_type_workshop.public_type_id  where workshop_session.full = '0' and public_type.name = '$public_typep'";
 		$talleresotros=$this->WorkshopSession->query($queryb);
 		
 		//debug($talleresotros);
 		//3.  Se busca la intersección entre los dos conjuntos de fechas
-		$resultados=$this->simple_array_intersect($resultado, $talleresotros);
+		$resultadosprevios=$this->simple_array_intersect($resultado, $talleresotros);
 		
+		
+	
+		//6.  Se filtran las fechas para la cuales hay sesiones con cupos disponibles para el número de integrantes del grupo.
+
+		// 6.1. Consultar el número de integrantes del grupo actual
+		$numero_inscritos_query = $this->Group->query("SELECT members_number FROM `groups` where id_group='$id_group'");
+		$numero_inscritos=$numero_inscritos_query[0]['groups']['members_number'];
+
+		// 6.2. Por cada fecha verificar que exista al menos una sesión con suficientes cupos disponibles.
+		$resultadofinal=array();
+		foreach ($resultadosprevios as $resultadoprevio){
+			//Consultar las sesiones que aún tienen cupo
+			$workshop_day=$resultadoprevio['workshop_session']['workshop_day'];
+			
+			//$cupo_maximo=$resultadoprevio['room'];
+			
+			$sesiones_con_cupo=$this->WorkshopSession->query("SELECT * FROM `workshop_session` where full = 0 and workshop_day='$workshop_day'");
+			//Por cada sesión con cupo, verificar si el número de cupos disponibles es mayor que el nùmero de integrantes del grupo
+
+			foreach($sesiones_con_cupo as $sesion_con_cupo){
+				$encontrado=false;
+				$workshop_id=$sesion_con_cupo['workshop_session']['workshop_id'];
+				$cupo_maximo=$this->Workshop->query("SELECT room FROM `workshop` where id_workshop='$workshop_id'")[0]['workshop']['room'];
+
+				$id_workshop_session=$sesion_con_cupo['workshop_session']['id_workshop_session'];
+				$numero_inscritos_query = $this->Group->query("SELECT sum(members_number) FROM `groups` where workshop_session_id='$id_workshop_session'");
+				$suma_inscritos=$numero_inscritos_query[0][0]['sum(members_number)'];
+				$cupos_disponibles=$cupo_maximo-$suma_inscritos;
+				if ($numero_inscritos<=$cupos_disponibles){
+					$encontrado=true;
+					break;
+				}
+			}
+			if ($encontrado==true){
+				$resultadofinal[]=$resultadoprevio;
+			}
+
+		}
+
+
+
+		
+
 		
 		//4 se simplifica el array
 		$resultado=array();
-		foreach($resultados as $resultadosimple){
+		foreach($resultadofinal as $resultadosimple){
 			array_push($resultado,$resultadosimple['workshop_session']['workshop_day']);
 		}
+
 		//5. se ordena el array
 		sort($resultado);
-		
+
 		//5. Se pasa el resultado de la intersección a la vista
 		$taller=$resultado;
 		
@@ -316,7 +401,8 @@ class WorkshopSessionsController extends AppController {
 		
 		$this->set('listadohorarion',$listadohorarion);
 		
-		//Si el usuario ha llenado el formulario lo redirige al controlador que le mostrará los talleres disponibles en la fecha seleccionada.
+
+		//Una vez el usuario selecciona la fecha, se sigue a la vista para mostrar el listado de sesiones de talleres disponibles en esa fecha.
 		if ($this->request->is('post')) {
 			//$datework= $this->request->data['WorkshopSession']['workshop_day'];
 			$datework= $this->request->data['WorkshopSession']['diataller'];

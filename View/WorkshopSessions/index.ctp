@@ -1,6 +1,6 @@
 ﻿
 <div class="workshopSessions index">
-<?php $this->set('title_for_layout' , 'Ver sessión de carpa' );?>
+<?php $this->set('title_for_layout' , 'Ver sesión de carpa' );?>
 	<h2><?php echo __('Workshop Sessions'); ?></h2>
 
 	<table cellpadding="0" cellspacing="0">

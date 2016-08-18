@@ -10,7 +10,7 @@ App::import('Controller', 'Groups');
  */
 class WorkshopsController extends AppController {
 	
-	var $uses = array('Workshop','Register','User','Institution','WorkshopSession','PublicType');
+	var $uses = array('Workshop','Register','User','Institution','WorkshopSession','PublicType','Group');
 	
 /**
  * Components
@@ -41,7 +41,7 @@ class WorkshopsController extends AppController {
 			
 	}
 	
-	//Controlador para la vista que muestra el detalle de una carpa con sus horarios de talleres disponibles para que el usuario seleccione una hora para hacer ese taller. 
+	//Controlador que muestra los horarios disponibles en un taller en el que un grupo se puede inscribir.
 	public function workshop_inscription($id = NULL,$datework=null,$id_group=null)  {
 		
 		$this->set('datework',$datework);
@@ -52,11 +52,15 @@ class WorkshopsController extends AppController {
 		$options = array('conditions' => array('Workshop.' . $this->Workshop->primaryKey => $id));
 		$this->set('taller', $this->Workshop->find('first', $options));
 		
-		$queryday="select distinct workshop_session.workshop_day from workshop_session inner join workshop on  workshop.id_workshop = workshop_session.workshop_id where workshop.id_workshop = '$id' and workshop_session.workshop_day = '$datework' and workshop_session.group_id = 0";
+
+		//Query que devuelve todos los dìas en que hay sesiones disponibles.
+		$queryday="select distinct workshop_session.workshop_day from workshop_session inner join workshop on  workshop.id_workshop = workshop_session.workshop_id where workshop.id_workshop = '$id' and workshop_session.workshop_day = '$datework' and workshop_session.full = 0";
 		$tallerday=$this->Workshop->query($queryday);
 		//$this->set(compact('tallerday'));
 		
 		$this->set('tallerday',$tallerday);
+
+		//Si la anterior consulta no retorna ningún resultado quiere decir que mientras el grupo actual hacia la inscripción otro tomó la sesiones que estaban disponibles.
 		if ($tallerday == Array ( ))
 		{
 			$this->Session->setFlash(__('El taller no tiene horarios disponibles en esta fecha,Por favor seleccione otro taller o regrese al calendario y seleccione otra fecha'));
@@ -64,79 +68,115 @@ class WorkshopsController extends AppController {
 			
 		}
 		
+		//Si la consulta anterior retorna resultados, se pasa la información a la vista 
 		foreach ($tallerday as $tallerday):
-		$tallerdayp=$tallerday['workshop_session']['workshop_day'];
-		
+			$tallerdayp=$tallerday['workshop_session']['workshop_day'];
 		endforeach;
 		$this->set('tallerdayp',$tallerdayp);
 		
+		//Consulta que devuelve los horarios en los que está disponible el taller actual.  Con base en las sesiones que tienen cupo.
+		$querytime="select distinct workshop_session.workshop_time, workshop_session.id_workshop_session, workshop_session.workshop_id from workshop_session inner join workshop on  workshop.id_workshop = workshop_session.workshop_id where workshop.id_workshop = '$id' and workshop_session.workshop_day = '$datework' and workshop_session.full = 0";
 		
-		$querytime="select distinct workshop_session.workshop_time from workshop_session inner join workshop on  workshop.id_workshop = workshop_session.workshop_id where workshop.id_workshop = '$id' and workshop_session.workshop_day = '$datework' and workshop_session.group_id = 0";
-		
-		$tallertime=$this->Workshop->query($querytime);
+		$tallertimeprevios=$this->Workshop->query($querytime);
 
+		//Poner en el listado de horas solo aquellas en las que hay cupo disponible para este grupo.
+		$tallertime=array();
+		foreach ($tallertimeprevios as $tallertimeprevio){
+			$id_workshop_session=$tallertimeprevio['workshop_session']['id_workshop_session'];
+			$workshop_id=$tallertimeprevio['workshop_session']['workshop_id'];
+
+			//*Verificar si el cupo de la sesión está lleno
 		
-		//$this->set(compact('tallertime'));
+			//Consultar el numero de inscritos en la sesión
+			$numero_inscritos_query = $this->Group->query("SELECT sum(members_number) FROM `groups` where workshop_session_id='$id_workshop_session'");
+			$suma_inscritos=$numero_inscritos_query[0][0]['sum(members_number)'];
+
+			//Consultar el cupo máximo de la carpa/taller asociada a esta sesion
+			$cupo_maximo_query = $this->Workshop->query("select room from workshop where id_workshop='$workshop_id'");
+			$cupo_maximo_carpa=	$cupo_maximo_query[0]['workshop']['room'];
 		
+			//Consultar el número de miembros del grupo en cuestión
+			$miembros_grupo_query=$this->Group->query("SELECT sum(members_number) FROM `groups` where id_group='$id_group'");
+			
+			$miembros_grupo=$miembros_grupo_query[0][0]['sum(members_number)'];
+			$cupo_disponible=$cupo_maximo_carpa - $suma_inscritos;
+			if ($cupo_disponible >= $miembros_grupo){
+				$tallertime[]=$tallertimeprevio;
+			}
+		}
+
+		//Se construye la lista con todos los horarios disponibles y se envía a la vista.
 		$tallertimen = '';
 		foreach ($tallertime as $tallertimes):
-		$hora=$tallertimes['workshop_session']['workshop_time'];
-		//debug($hora);		
-		$horaconformato= date('h i a', strtotime($hora));
-		//debug($horaconformato);
-		$tallertimen = $tallertimen.'<option value="'.$tallertimes['workshop_session']['workshop_time'].'">'.$horaconformato.'</option>';
+			$hora=$tallertimes['workshop_session']['workshop_time'];
+			$horaconformato= date('h i a', strtotime($hora));
+			$tallertimen = $tallertimen.'<option value="'.$tallertimes['workshop_session']['workshop_time'].'">'.$horaconformato.'</option>';
 		endforeach;
 		$this->set('tallertimen',$tallertimen);
-		/*
-		foreach ($tallertime as $tallertime):
-		$tallertime=$tallertime['workshop_session']['workshop_time'];
 		
-		endforeach;
-		$this->set('tallertime',$tallertime);
-		
-		*/
-		
+		//Una vez se selecciona la hora y se la da clic al botón de inscripción redirige a workshop_update para guardar la inscripción.
 		if ($this->request->is('post')) {	
-		$horataller= $this->request->data['Workshop']['horataller'];
-		$this->set('horataller',$horataller);
-		
-		$timestamp=strtotime($horataller);
-		return $this->redirect(array('controller' => 'workshops','action' => 'workshop_update',$datework,$timestamp,$id_group,$id));
+			$horataller= $this->request->data['Workshop']['horataller'];
+			$this->set('horataller',$horataller);
+			$timestamp=strtotime($horataller);
+			return $this->redirect(array('controller' => 'workshops','action' => 'workshop_update',$datework,$timestamp,$id_group,$id));
 		}
 	
 	}
 	
-	//Controlador que guarda la inscripción en el taller seleccionado.
+	//Guarda una inscripción luego de que el usuario ha seleccionado la hora
 	public function workshop_update($datework=null,$timestamp=null,$id_group=null, $workshopid=null)  {
-		
 		$this->set('datework',$datework);
-		//$this->set('institutionidp',$institutionidp);
-		
 		$horataller=date('H:i:s',$timestamp);
 		$this->set('horataller',$horataller);
-		
 		$this->set('institutionidp',$institutionidp);
 		
+		//
 		$condicion=$this->Workshop->query("select group_id from workshop_session where group_id = '$id_group'");
 		$this->set('condicion',$condicion);
 		//debug($institutionidp);
 		$condicionp='';
 		foreach ($condicion as $condiciones):
 		$condicionp=$condiciones['workshop_session']['group_id'];
-		
-		
 		endforeach;
 		$this->set('condicionp',$condicionp);
 		
 		if($condicionp == 0)
 		{
 			
-		//**TODO:   Cambiar la manera en que abajo se guarda la inscripción.  Ahora debe hacerse en la tabla de grupos.  Asociando el id de workshop_session actual seleccionado al grupo actual.
 
-		//Se guarda la inscripción	
+		//Consulta para poner el id del grupo en la sesion escogida.  TODO: Borrar
 		$queryupdate="update workshop_session SET group_id = '$id_group' where workshop_session.workshop_day = '$datework' and workshop_session.workshop_time= '$horataller' and workshop_session.workshop_id= '$workshopid'";
 		$tallerupdate=$this->Workshop->query($queryupdate);
 		$this->set(compact('tallerupdate'));
+
+		//Se busca el id del workshop_session seleccionado (Que cumple con todos los parámetros)
+		$queryfinds="select id_workshop_session from workshop_session where workshop_session.workshop_day = '$datework' and workshop_session.workshop_time= '$horataller' and workshop_session.workshop_id= '$workshopid'";
+		$sessions=$this->Workshop->query($queryfinds);
+		$id_workshop_session='';
+		foreach ($sessions as $session):
+		$id_workshop_session=$session['workshop_session']['id_workshop_session'];
+		endforeach;
+
+
+		//Consulta para poner el id de la sesión en el grupo.
+		$queryupdategroup="update groups SET workshop_session_id = '$id_workshop_session' where groups.id_group='$id_group'";
+		$groupupdate=$this->Group->query($queryupdategroup);
+
+		//*Verificar si el cupo de la sesión está lleno
+		
+		//Consultar el numero de inscritos en la sesión
+		$numero_inscritos_query = $this->Group->query("SELECT sum(members_number) FROM `groups` where workshop_session_id='$id_workshop_session'");
+		$suma_inscritos=$numero_inscritos_query[0][0]['sum(members_number)'];
+
+		//Consultar el cupo máximo de la carpa/taller asociada a esta sesion
+		$cupo_maximo_query = $this->Workshop->query("select room from workshop where id_workshop='$workshopid'");
+		$cupo_maximo_carpa=	$cupo_maximo_query[0]['workshop']['room'];
+	//debug($suma_inscritos."/".$cupo_maximo_carpa);
+		//Si el cupo de la sesión está lleno, se debe poner el valor full=1 en la tabla de sesiones.
+		if($suma_inscritos>=$cupo_maximo_carpa){
+			$queryupdatesession=$this->WorkshopSession->query("update workshop_session SET full=1 where workshop_session.id_workshop_session='$id_workshop_session'");
+		}
 		
 		//register de inscripcion...
 		$usuario = $this->Session->read('Auth.User.username');
@@ -201,6 +241,9 @@ class WorkshopsController extends AppController {
 		$this->set('condiciontra',$condiciontra);
 		*/
 		}
+		
+
+
 		return $this->redirect(array('controller' => 'workshops','action' => 'view_inscription',$id_group));	
 	}
 	
@@ -366,7 +409,7 @@ class WorkshopsController extends AppController {
 		$usuario = $this->Session->read('Auth.User.username');
 		$this->set('usuario',$usuario);
 	
-		$groupid=$this->Workshop->query("select groups.id_group,groups.name,groups.members_number,groups.user_id from groups inner join user on groups.user_id = user.id_user  where user.username = '$usuario' and groups.id_group = '$id_group' ");
+		$groupid=$this->Workshop->query("select groups.id_group,groups.name,groups.members_number,groups.user_id, groups.workshop_session_id from groups inner join user on groups.user_id = user.id_user  where user.username = '$usuario' and groups.id_group = '$id_group' ");
 		//debug($institutionid);
 	
 		foreach ($groupid as $groupid):
@@ -374,6 +417,7 @@ class WorkshopsController extends AppController {
 		$groupname=$groupid['groups']['name'];
 		$groupnumber=$groupid['groups']['members_number'];
 		$groupuser=$groupid['groups']['user_id'];
+		$id_workshop_session=$groupid['groups']['workshop_session_id'];
 		//debug($institutionname);
 	
 		endforeach;
@@ -396,7 +440,7 @@ class WorkshopsController extends AppController {
 		$this->set('ruser',$ruser);
 		//fin
 		//$condicion=$this->Workshop->query("select workshop_session.group_id from workshop_session inner join groups on workshop_session.group_id = groups.id_group where workshop_session.group_id = $groupidp");
-		$condicion=$this->Workshop->query("select group_id,workshop_id,workshop_day,workshop_time,travel_time from workshop_session where group_id = $groupidp");
+		$condicion=$this->Workshop->query("select group_id,workshop_id,workshop_day,workshop_time,travel_time from workshop_session where id_workshop_session = $id_workshop_session");
 	
 		//$condicion=";
 		//$condicion="select user.institution_id from user inner join (institution inner join workshop_session on institution.id_institution = workshop_session.institution_id) on user.institution_id = institution.id_institution where user.username = $usuario";
@@ -411,14 +455,17 @@ class WorkshopsController extends AppController {
 		endforeach;
 	
 		$this->set('condicion',$condicion);
+		
+		//Se define una variable para saber si lo se está mostrando es la informaciòn del grupo o si se està mostrando la informaciòn del usuario recien inscrito
 		$condicionp='';
 		foreach ($condicion as $condiciones):
-		$condicionp=$condiciones['workshop_session']['group_id'];
+		//$condicionp=$condiciones['workshop_session']['group_id'];
+		$condicionp=$groupidp;
 	
 		endforeach;
 		$this->set('condicionp',$condicionp);
 	
-	
+		//Si la variable no es igual a cero, es porque se encontró alguna sesión asociada al grupo, entonces se muestra la información del grupo 
 		if ($condicionp != 0)
 		{
 	
@@ -473,8 +520,8 @@ class WorkshopsController extends AppController {
  		workshop wp
                         
  		WHERE                     
-		wp.id_workshop=ws.workshop_id AND  
-    	gs.id_group=ws.group_id AND
+		wp.id_workshop=ws.workshop_id AND
+        gs.workshop_session_id=ws.id_workshop_session AND
     	pt.id_public_type=gs.public_type_id AND
     	us.id_user=gs.user_id AND
 		gs.user_id= $iduser");
@@ -491,17 +538,20 @@ class WorkshopsController extends AppController {
 		
 		$Groups = new GroupsController();
 
-		$groupid=$this->Workshop->query("select groups.id_group,groups.name,groups.members_number,groups.user_id from groups inner join user on groups.user_id = user.id_user  where user.username = '$usuario' and groups.id_group = '$id_group' ");
+		//Consulta que recupera la información del grupo a cancelar
+		$groupid=$this->Workshop->query("select groups.id_group,groups.name,groups.members_number,groups.user_id, groups.workshop_session_id from groups inner join user on groups.user_id = user.id_user  where user.username = '$usuario' and groups.id_group = '$id_group' ");
 		
 		$groupidp=null;
 		$groupname=null;
 		$groupnumber=null;
 		$groupuser=null;
+		$id_workshop_session=null;
 		foreach ($groupid as $groupid):
 		$groupidp=$groupid['groups']['id_group'];
 		$groupname=$groupid['groups']['name'];
 		$groupnumber=$groupid['groups']['members_number'];
 		$groupuser=$groupid['groups']['user_id'];
+		$id_workshop_session=$groupid['groups']['workshop_session_id'];
 		
 	
 		endforeach;
@@ -510,7 +560,9 @@ class WorkshopsController extends AppController {
 		$this->set('groupnumber',$groupnumber);
 		$this->set('groupuser',$groupuser);
 
-		//---Registro de inscripciones
+		//*** Registro en el log
+
+		//Se averigua el nombre del responsable
 		$responsibles=$this->User->find('all', array('conditions'=>array('id_user'=>$groupuser),'fields'=>array('name','celular','id_user')));
 		$rname=null;
 		$rcelular=null;
@@ -524,14 +576,14 @@ class WorkshopsController extends AppController {
 		$this->set('rcelular',$rcelular);
 		$this->set('ruser',$ruser);
 
-		$condicionn=$this->Workshop->query("select group_id,workshop_id,workshop_day,workshop_time,travel_time from workshop_session where group_id = $id_group");
-		
+		//Se sacan los datos de la sesión 
+		$condicionn=$this->Workshop->query("select group_id,workshop_id,workshop_day,workshop_time,travel_time from workshop_session where id_workshop_session = $id_workshop_session");
 		$this->set('condicionn',$condicionn);
 		$condicionnp='';
+		//Se obtiene el grupo asignado a la sesión
 		foreach ($condicionn as $condicionnes):
-		$condicionnp=$condicionnes['workshop_session']['group_id'];
-
-		
+			//$condicionnp=$condicionnes['workshop_session']['group_id'];
+			$condicionnp=$groupidp;
 		endforeach;
 		$this->set('condicionnp',$condicionnp);
 		
@@ -545,23 +597,22 @@ class WorkshopsController extends AppController {
 		endforeach;
 		$this->set('$condicionnid',$condicionnid);
 		
+		//Se obtiene el nombre del taller.
 		$condicionname=$this->Workshop->query("select name from workshop where id_workshop = '$condicionnid'");
 		$condicionnomb = '';
-		
-		//debug($condicionname);
 		foreach ($condicionname as $condicionam):
 		$condicionnomb=$condicionam['workshop']['name'];
 		endforeach;
 		$this->set('condicionnomb',$condicionnomb);
-		
 		$estado = "Cancelado";
+		//Se toma el tiempo de la cancelación
 		$horas_diferencia= -5;
 		$tiempo=time() + ($horas_diferencia * 60 *60);
 		list($Mili, $bot) = explode(" ", microtime());
 		$DM=substr(strval($Mili),2,4);
 		$fecha = date('Y-m-d H:i:s:'. $DM,$tiempo);
 		$this->set('fecha',$fecha);
-		
+		//Con los datos optenidos, se registra la cancelaciòn
 		$this->Register->create();
 		$this->Register->set(array(
 				'date' => $fecha,
@@ -571,8 +622,8 @@ class WorkshopsController extends AppController {
 		));
 		$this->Register->save();
 		
-		//Envió de Correo...
-		
+		//********Envió de Correo...
+		//Se consulta toda la informaciòn del grupo
 		$groupid=$this->Workshop->query("select groups.id_group,groups.name,groups.members_number,groups.user_id from groups inner join user on groups.user_id = user.id_user  where user.username = '$usuario' and groups.id_group = '$id_group' ");
 		
 		$groupidp=null;
@@ -591,14 +642,18 @@ class WorkshopsController extends AppController {
 		$this->set('groupname',$groupname);
 		$this->set('groupmember',$groupmember);
 		$this->set('groupuser',$groupuser);
-				
-		$queryupdate=$this->Workshop->query("update workshop_session SET group_id = '0' where workshop_session.group_id = '$id_group'");
+			
+		//Se actualiza la información de la sesion del taller	
+		$queryupdate=$this->Workshop->query("update workshop_session SET full = '0' where workshop_session.id_workshop_session = '$id_workshop_session'");
 		$this->set(compact('queryupdate'));
 		
 		$Groups = new GroupsController;
+		debug($queryupdate);
 		
-		if($queryupdate == array())
+		//Si la actualización de la información en la tabla de sesiones es exitosa
+		if($queryupdate == array() or $queryupdate == true)
 		{
+			//Se borra el grupo
 			$Groups_response = $Groups->delete($id_group);
 			
 			//Envió de Correo...
@@ -669,10 +724,10 @@ class WorkshopsController extends AppController {
 				$this->Session->setFlash(__('El grupo ha sido eliminado.'));
 			}
 		}
-		else {
+		else { //Si la actualización de la información en la tabla de sesiones no fue exitosa
 			$this->Session->setFlash(__('El grupo no pudó ser eliminado. Por favor, Intenta de nuevo.'));
 		}
-		return $this->redirect(array('action' => 'index_inscription'));							
+		//return $this->redirect(array('action' => 'index_inscription'));							
 	}	
 	
 	public function register(){

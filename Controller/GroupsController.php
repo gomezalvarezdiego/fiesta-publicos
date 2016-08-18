@@ -53,6 +53,18 @@ class GroupsController extends AppController {
 		$this->set('groups', $this->Paginator->paginate());
 	}
 
+	public function migratescript(){
+		$workshops_reservados=$this->WorkshopSession->query("SELECT id_workshop_session, group_id from workshop_session WHERE group_id != '0'" );
+
+		foreach($workshops_reservados as $workshop_reservado){
+			$id_workshop_session=$workshop_reservado['workshop_session']['id_workshop_session'];
+			$group_id=$workshop_reservado['workshop_session']['group_id'];
+			$update_group=$this->Group->query("UPDATE groups SET workshop_session_id='$id_workshop_session' WHERE id_group ='$group_id'");
+			/*debug($id_workshop_session);
+			debug($group_id);*/
+		}
+	}
+
 /**
  * view method
  *
@@ -127,46 +139,52 @@ class GroupsController extends AppController {
 			$initialConditions=count($SpecificCondition);
 			//debug($data);
 
-			//Busca las carpas que cazan con el tipo de público que tiene el grupo
+
+			//Consulta que devuelve todos los talleres que cumplen con el tipo de público
 			$query="SELECT DISTINCT workshop_id
 		    FROM
 			public_type_workshop
 		    WHERE
 			public_type_id = '".$id_public_type_id."'";
+
 			$workshop = $this->Group->PublicType->query($query);
     		
     		if($workshop != array()) //Si el resultado de la consulta no es vacío
       		{
       			$work_ids = array();
       			$reals_id = array();
+      			//Se guarda en un array todos los ids de esos talleres que cumplen con el tipo de p'ublico
       			foreach ($workshop as $value) {
       				$work_ids[] = $value['public_type_workshop']['workshop_id'];
       			}
       			$s_work_ids = implode(",", $work_ids);
 
-      			//Consulta que devuelve todos los ids de los grupos asociados con las carpas que cumplen el tipo de público
-      			$query_val = "SELECT group_id FROM workshop_session WHERE workshop_id in  (" . $s_work_ids .")";
+      			//Consulta para buscar todos los id de grupos que cumplem con el tipo de público.  Busca solo en aquellas sesiones que cuadran con el tipo de p'ublico.  
+      			$query_val = "SELECT group_id, full FROM workshop_session WHERE workshop_id in  (" . $s_work_ids .")";
+
 		 		$sql = $this->Group->PublicType->query($query_val);
-		 		$flag = false; //bandera...
+		 		$flag = false; //bandera...  ¿Hay grupos en cero?
 
   				if($SpecificCondition != ''){
 
   					$s_SpecificCondition = implode(",", $SpecificCondition);
   					$hasWorkshopSpecific=false;
 
+  					//Por talleres del conjunto de las que cumplen con el tipo de publico.
   					foreach ($work_ids as $key => $value) {
-  						//Consulta por cada carpa para verificar que cumple con la condición específica
+
+  						//Consulta para averiguar las sesión que cumplen con la condiciòn especifica definida en el formulario de la vista de este controlador. Adicionalmente debe cumplir con que sea una sesión que no tenga lleno el cupo
 	  					$query = "SELECT t1.*, ws.id_workshop_session
 						FROM
 						    specific_condition_workshop t1, 
-						    workshop_session ws
+						    workshop_session ws,
 						WHERE
 							t1.workshop_id = $value
 					        AND ws.workshop_id = $value
-					        AND ws.group_id = 0
+					        AND ws.full = '0'  
 					        AND specific_condition_id IN ($s_SpecificCondition)
 						group by workshop_id , specific_condition_id					
-	  							 ";
+	  							 "; //Antes, en vez de ws.full estaba ws.group
 
 	  					
 	  					$scq = $this->Group->PublicType->query($query);
@@ -175,12 +193,14 @@ class GroupsController extends AppController {
 	  					//debug($foundConditions);
 	  					//debug($initialConditions);
 
+	  					//Si el nùmero de condiciones especificas del grupo que se està creando es igual al numero de condiciones especificas de la sesión en el ciclo actual (que además es una sesión con cupo disponble) ha encontrado al menos una ocasiòn en que esto se cumple.  Hay al menos una sesión de taller que cumple con el tipo de pùblico y las condiciones especìficas.
 	  					if($initialConditions==$foundConditions){
 	  						$hasWorkshopSpecific=true;
 	  						break;
 	  					}
   					}
- 
+ 					
+ 					//Si no hay al menos una sesiòn de taller que cumpla con el tipo de pùblico y las condiciones especìficas, el grupo no se puede guardar.
 	      			if(!$hasWorkshopSpecific){
 	      				$this->Session->setFlash(__('No hay taller para estas condiciones.'));
 	      				return false;
@@ -198,12 +218,14 @@ class GroupsController extends AppController {
 			 			if ($this->Group->save($data)) {
 			 				$id_group = $this->Group->id;
 			 				$this->Session->setFlash(__('The group has been saved.'));
+			 				//Verifica todas las sesiones para ver si hay al menos una que tenga cupo disponible.
 			 				foreach ($sql as $value) {
-			 					if($value['workshop_session']['group_id'] == '0'){
+			 					//Antes en vez de full estaba group_id
+			 					if($value['workshop_session']['full'] == '0'){
 			 						$flag = true;
 			 					}
 		 					}
-		 				if($flag){
+		 				if($flag){ //Si hay grupos que no tienen lleno el cupo se puede proceder con el siguiente paso.
 		 					return $this->redirect(array('controller' => 'WorkshopSessions', 'action' => 'addworkshop',$id_group));
 		 				} else {
 		 					$this->Session->setFlash(__('Lo sentimos, No hay cupos disponibles para los talleres asignados a este tipo de público.'));
@@ -214,7 +236,7 @@ class GroupsController extends AppController {
 			 			}
 			 		}
 			 	}
-			 	else{
+			 	else{  //Si el grupo no tiene condiciones especificas
 		 			$this->Group->create();
 				    $id_user = $this->Session->read('Auth.User.id_user');
 		 		 	$this->set('id_user',$id_user);
@@ -222,8 +244,9 @@ class GroupsController extends AppController {
 		 		 	$data['Group']['user_id']=$id_user;
 		 		 	$data['Group']['creation_date']=date('Y-m-d H:i:s');
 		 			//debug($work_ids);
+		 			//************TODO: Aqu'i se debe poner el workshop_session_id (el id de la sesi[on en la que quedará])
 			
-		 			if ($this->Group->save($data)) {
+		 			if ($this->Group->save($data)) { 
 		 				$id_group = $this->Group->id;
 		 				$this->Session->setFlash(__('The group has been saved.'));
 		 				//debug($id_group);
@@ -231,10 +254,12 @@ class GroupsController extends AppController {
 		 				// $sql = $this->Group->PublicType->query($query_val);
 		 				// $flag = false; //bandera...
 		 				foreach ($sql as $value) {
-		 					if($value['workshop_session']['group_id'] == '0'){
+		 					//Si la sesión del taller no tiene lleno el cupo, la bandera se pone en true y quiere decir que la sesión está disponible.
+		 					if($value['workshop_session']['full'] == '0'){
 		 						$flag = true;
 		 					}
 		 				}
+		 				//Si la sesión está disponible se redirije al controlador de sesiones talleres para agregar el grupo a esa sesión.
 		 				if($flag){
 		 					return $this->redirect(array('controller' => 'WorkshopSessions', 'action' => 'addworkshop',$id_group));
 		 				} else {
@@ -394,7 +419,7 @@ public function download()
 					WHERE
 					    	g.user_id = u.id_user
 					        AND g.public_type_id = p.id_public_type
-					        AND ws.group_id = g.id_group
+					        AND g.workshop_session_id = ws.id_workshop_session
 					        AND i.id_institution = iu.institution_id
 					        AND iu.user_id = u.id_user
 					        AND ws.workshop_id = w.id_workshop
