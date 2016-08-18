@@ -1,2 +1,3 @@
 ALTER TABLE  `groups` ADD  `workshop_session_id` INT NOT NULL AFTER  `user_id`
 ALTER TABLE  `workshop_session` ADD  `full` BOOLEAN NOT NULL DEFAULT FALSE AFTER  `group_id`
+ALTER TABLE  `workshop` ADD  `room` INT NOT NULL DEFAULT  '40' AFTER  `description`

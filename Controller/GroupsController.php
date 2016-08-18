@@ -53,6 +53,18 @@ class GroupsController extends AppController {
 		$this->set('groups', $this->Paginator->paginate());
 	}
 
+	public function migratescript(){
+		$workshops_reservados=$this->WorkshopSession->query("SELECT id_workshop_session, group_id from workshop_session WHERE group_id != '0'" );
+
+		foreach($workshops_reservados as $workshop_reservado){
+			$id_workshop_session=$workshop_reservado['workshop_session']['id_workshop_session'];
+			$group_id=$workshop_reservado['workshop_session']['group_id'];
+			$update_group=$this->Group->query("UPDATE groups SET workshop_session_id='$id_workshop_session' WHERE id_group ='$group_id'");
+			/*debug($id_workshop_session);
+			debug($group_id);*/
+		}
+	}
+
 /**
  * view method
  *
@@ -403,7 +415,7 @@ public function download()
 					WHERE
 					    	g.user_id = u.id_user
 					        AND g.public_type_id = p.id_public_type
-					        AND ws.group_id = g.id_group
+					        AND g.workshop_session_id = ws.id_workshop_session
 					        AND i.id_institution = iu.institution_id
 					        AND iu.user_id = u.id_user
 					        AND ws.workshop_id = w.id_workshop
