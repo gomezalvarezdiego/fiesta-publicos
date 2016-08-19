@@ -729,7 +729,7 @@ class WorkshopsController extends AppController {
 		else { //Si la actualización de la información en la tabla de sesiones no fue exitosa
 			$this->Session->setFlash(__('El grupo no pudó ser eliminado. Por favor, Intenta de nuevo.'));
 		}
-		//return $this->redirect(array('action' => 'index_inscription'));							
+		return $this->redirect(array('action' => 'index_inscription'));							
 	}	
 	
 	public function register(){
