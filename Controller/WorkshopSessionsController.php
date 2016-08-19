@@ -163,7 +163,7 @@ class WorkshopSessionsController extends AppController {
 		// 4.1. Consultar el número de integrantes del grupo actual
 		$numero_inscritos_query = $this->Group->query("SELECT members_number FROM `groups` where id_group='$id_group'");
 		$numero_inscritos=$numero_inscritos_query[0]['groups']['members_number'];
-
+		debug($resultadosprevios);
 		// 4.2. Por cada taller verificar que exista al menos una sesión con suficientes cupos disponibles.
 		$resultadofinal=array();
 		foreach ($resultadosprevios as $resultadoprevio){
@@ -178,8 +178,11 @@ class WorkshopSessionsController extends AppController {
 				$numero_inscritos_query = $this->Group->query("SELECT sum(members_number) FROM `groups` where workshop_session_id='$id_workshop_session'");
 				$suma_inscritos=$numero_inscritos_query[0][0]['sum(members_number)'];
 				$cupos_disponibles=$cupo_maximo-$suma_inscritos;
+				debug("Numero inscritos: ".$numero_inscritos);
+				debug("Cupos disponibles".$cupos_disponibles);
 				if ($numero_inscritos<=$cupos_disponibles){
 					$encontrado=true;
+					debug('******************************');
 					break;
 				}
 			}
