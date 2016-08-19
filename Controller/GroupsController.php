@@ -187,7 +187,7 @@ class GroupsController extends AppController {
 	  					$query = "SELECT t1.*, ws.id_workshop_session
 						FROM
 						    specific_condition_workshop t1, 
-						    workshop_session ws,
+						    workshop_session ws
 						WHERE
 							t1.workshop_id = $value
 					        AND ws.workshop_id = $value
