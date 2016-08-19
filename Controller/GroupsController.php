@@ -54,7 +54,7 @@ class GroupsController extends AppController {
 	}
 
 	public function migratescript(){
-		/*
+		
 		$workshops_reservados=$this->WorkshopSession->query("SELECT id_workshop_session, group_id from workshop_session WHERE group_id != '0'" );
 
 		foreach($workshops_reservados as $workshop_reservado){
@@ -64,7 +64,7 @@ class GroupsController extends AppController {
 			//debug($id_workshop_session);
 			//debug($group_id);*
 		}
-		*/
+		
 
 		$grupos_llenos=$this->Group->query("SELECT workshop_session_id from groups WHERE members_number='40'" );
 		foreach ($grupos_llenos as $grupo_lleno){
