@@ -170,7 +170,8 @@ class WorkshopSessionsController extends AppController {
 			//Consultar las sesiones que aún tienen cupo
 			$id_workshop=$resultadoprevio['id_workshop'];
 			$cupo_maximo=$resultadoprevio['room'];
-			$sesiones_con_cupo=$this->WorkshopSession->query("SELECT * FROM `workshop_session` where full = 0 and workshop_id='$id_workshop'");
+			$sesiones_con_cupo=$this->WorkshopSession->query("SELECT * FROM `workshop_session` where full = 0 and workshop_id='$id_workshop' and workshop_day='$datework'");
+			//debug($sesiones_con_cupo);
 			//Por cada sesión con cupo, verificar si el número de cupos disponibles es mayor que el nùmero de integrantes del grupo
 			foreach($sesiones_con_cupo as $sesion_con_cupo){
 				$encontrado=false;

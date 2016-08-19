@@ -53,7 +53,7 @@ class WorkshopsController extends AppController {
 		$this->set('taller', $this->Workshop->find('first', $options));
 		
 
-		//Query que devuelve todos los dìas en que hay sesiones disponibles.
+		//Query que devuelve el dìa del taller escogido
 		$queryday="select distinct workshop_session.workshop_day from workshop_session inner join workshop on  workshop.id_workshop = workshop_session.workshop_id where workshop.id_workshop = '$id' and workshop_session.workshop_day = '$datework' and workshop_session.full = 0";
 		$tallerday=$this->Workshop->query($queryday);
 		//$this->set(compact('tallerday'));
@@ -79,6 +79,8 @@ class WorkshopsController extends AppController {
 		
 		$tallertimeprevios=$this->Workshop->query($querytime);
 
+		//debug($tallerday);
+		//debug($tallertimeprevios);
 		//Poner en el listado de horas solo aquellas en las que hay cupo disponible para este grupo.
 		$tallertime=array();
 		foreach ($tallertimeprevios as $tallertimeprevio){
