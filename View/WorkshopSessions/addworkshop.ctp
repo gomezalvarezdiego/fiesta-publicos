@@ -13,7 +13,7 @@
     		var selectedoption=$('#diataller').val();
     		$.ajax({
 				type: "POST",
-				url: '/fiesta-publicos/WorkshopSessions/hoursforday/',
+				url: '/publicos/WorkshopSessions/hoursforday/',
 				data: "ajax=true&dia="+selectedoption,
 				success: function(msg){
 			//console.log(msg);
