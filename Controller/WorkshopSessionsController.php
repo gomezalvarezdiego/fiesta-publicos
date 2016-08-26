@@ -7,7 +7,7 @@ App::uses('AppController', 'Controller');
  * @property PaginatorComponent $Paginator
  */
 class WorkshopSessionsController extends AppController {
-	var $uses = array('Workshop','Register','User','Institution','WorkshopSession','PublicType','Group');
+	var $uses = array('Workshop','Register','User','Institution','WorkshopSession','PublicType','Group', 'Entity');
 /**
  * Components
  *
@@ -75,12 +75,24 @@ class WorkshopSessionsController extends AppController {
 	}
 
 	//devuelve el listado de todos los talleres que cumplen con las condiciones de un grupo y una fecha escogida.
-	public function workshoplist($datework=null, $id_group=null) {
+	public function workshoplist($datework=null, $id_group=null, $hourwork=null) {
 
 		$this->set('datework',$datework);
 		
 		$this->set('id_group',$id_group);
 
+		
+
+
+		
+		$horaquery="";
+		if ($hourwork != null){
+			$hourwork2=str_replace("-", ":", $hourwork);
+			$this->set('hourwork',$hourwork2);
+			$horaquery=" and workshop_time='".$hourwork2."'";
+		}
+
+		debug($horaquery);
 			
 		$usuario = $this->Session->read('Auth.User.username');
 		$this->set('usuario',$usuario);
@@ -148,7 +160,7 @@ class WorkshopSessionsController extends AppController {
 	//debug($resultado);
 		
 		//2.  Se buscan todos los talleres que cumplen con las condiciones de fecha y tipo de público
-		$queryb="select distinct workshop.id_workshop, workshop.name, workshop.description, workshop.room, workshop.entity_id from public_type inner join (public_type_workshop inner join (workshop inner join workshop_session on workshop.id_workshop = workshop_session.workshop_id) on public_type_workshop.workshop_id = workshop.id_workshop) on public_type.id_public_type = public_type_workshop.public_type_id  where workshop_session.workshop_day = '$datework' and workshop_session.full = '0' and public_type.name = '$public_typep'";
+		$queryb="select distinct workshop.id_workshop, workshop.name, workshop.description, workshop.room, workshop.entity_id from public_type inner join (public_type_workshop inner join (workshop inner join workshop_session on workshop.id_workshop = workshop_session.workshop_id) on public_type_workshop.workshop_id = workshop.id_workshop) on public_type.id_public_type = public_type_workshop.public_type_id  where workshop_session.workshop_day = '$datework' and workshop_session.full = '0' and public_type.name = '$public_typep'".$horaquery;
 		$talleresotros=$this->WorkshopSession->query($queryb);
 		$talleresconlasdemascondiciones=array();
 		foreach ($talleresotros as $tallerotro){
@@ -193,8 +205,20 @@ class WorkshopSessionsController extends AppController {
 
 		}
 
+		//Se buscan los nombres de las entidades
+		$resultadofinalconentidad=array();
+		foreach ($resultadofinal as $resultado){
+			$entity_id=$resultado['entity_id'];
+			$nombre_entidad_query=$this->Entity->query("SELECT name FROM `entity` where id_entity='$entity_id'");
+			$resultado['entity_name']=$nombre_entidad_query[0]['entity']['name'];
+			$resultadofinalconentidad[]=$resultado;
+
+		}
+		
+
 		//5. Se pasa el resultado de la intersección a la vista
-		$taller=$resultadofinal;
+		$taller=$resultadofinalconentidad;
+		debug($taller);
 		$this->set(compact('taller'));
 		//***************DFGA
 		
@@ -409,8 +433,11 @@ class WorkshopSessionsController extends AppController {
 		//Una vez el usuario selecciona la fecha, se sigue a la vista para mostrar el listado de sesiones de talleres disponibles en esa fecha.
 		if ($this->request->is('post')) {
 			//$datework= $this->request->data['WorkshopSession']['workshop_day'];
+			//Recupera los valores de fecha y hora desde lo escogido en el formulario
 			$datework= $this->request->data['WorkshopSession']['diataller'];
-			return $this->redirect(array('controller' => 'WorkshopSessions', 'action' => 'workshoplist', $datework, $id_group));
+			$hourwork = $this->request->data['WorkshopSession']['horataller'];
+			$hourwork2=str_replace(":", "-", $hourwork);
+			return $this->redirect(array('controller' => 'WorkshopSessions', 'action' => 'workshoplist', $datework, $id_group, $hourwork2));
 		}
 	}
 	/*
@@ -572,4 +599,38 @@ class WorkshopSessionsController extends AppController {
 			$this->Session->setFlash(__('The workshop session could not be deleted. Please, try again.'));
 		}
 		return $this->redirect(array('action' => 'index'));
-	}}
+	}
+
+	public function hoursforday() {
+		$this->layout = null;
+		$dia=$this->data['dia'];
+		//debug($valor);
+
+
+
+		$horas= array("10:00:00","11:00:00","12:00:00","13:00:00","14:00:00","15:00:00","16:00:00","17:00:00", "18:00:00", "19:00:00");
+
+
+		$listadohoras = '';
+		foreach ($horas as $hora):
+			$horar=$hora;
+			//debug($horar);
+
+			//$fechaconformato= date('d M Y', strtotime($horar));
+			$horaconformato=$hora;
+			//debug($fechaconformato);
+			$listadohoras = $listadohoras.'<option value="'.$hora.'">'.$horaconformato.'</option>';
+		endforeach;
+
+
+
+
+		$this->set('listadohoras', $listadohoras);
+
+
+
+	}
+
+
+
+}

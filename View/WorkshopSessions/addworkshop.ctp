@@ -5,10 +5,36 @@
   <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script> 
  <script>
  $(function() {
+
+ 	 $("#horacheck").change(function(){
+ 		if(this.checked) {
+ 			//alert("hola");
+    		//$('.hours').html("hola");
+    		var selectedoption=$('#diataller').val();
+    		$.ajax({
+				type: "POST",
+				url: '/fiesta-publicos/WorkshopSessions/hoursforday/',
+				data: "ajax=true&dia="+selectedoption,
+				success: function(msg){
+			//console.log(msg);
+				$('.hours').html(msg);
+			// remove loading image
+				}
+				
+			})
+		}
+	   	else{
+    		$('.hours').html("");
+    	}
+ 	
+ 	});
+    
+
     $( "#datepicker" ).datepicker({
-	changeMonth: true,
-	changeYear: true
-});
+		changeMonth: true,
+		changeYear: true
+	});
+
 	$.datepicker.regional['es'] =
   {
   closeText: 'Fermer',
@@ -29,6 +55,9 @@
     $('#datepicker').datepicker('option', {dateFormat: 'dd-mm-yy'});
 
 });
+
+
+
 </script>
  <!--Fin Scripts para el calendario -->
 <div class="WorkshopSession form">
@@ -49,7 +78,14 @@
 			  }
 			  else
 				{					
-		 			echo '<label><select name="data[WorkshopSession][diataller]">'.$listadohorarion.'</select></label>';
+		 			echo '<label><select id="diataller" name="data[WorkshopSession][diataller]">'.$listadohorarion.'</select></label>';
+		 			echo'<div class="checkbox">
+           					<input name="hora" value="1" id="horacheck" type="checkbox">
+           					<label for="hora">Buscar para una hora específica</label>
+      					</div>';
+      				echo'<div class="hours">
+     					</div>';
+
 		 			echo $this->Form->end(__('Ver Carpas'));
 		 			
 				}

@@ -128,12 +128,13 @@ class WorkshopsController extends AppController {
 	
 	//Guarda una inscripción luego de que el usuario ha seleccionado la hora
 	public function workshop_update($datework=null,$timestamp=null,$id_group=null, $workshopid=null)  {
+
 		$this->set('datework',$datework);
 		$horataller=date('H:i:s',$timestamp);
 		$this->set('horataller',$horataller);
 		$this->set('institutionidp',$institutionidp);
 		
-		//
+		//Verificar si a la sesion del taller ya se le asignó un grupo
 		$condicion=$this->Workshop->query("select group_id from workshop_session where group_id = '$id_group'");
 		$this->set('condicion',$condicion);
 		//debug($institutionidp);
@@ -142,7 +143,8 @@ class WorkshopsController extends AppController {
 		$condicionp=$condiciones['workshop_session']['group_id'];
 		endforeach;
 		$this->set('condicionp',$condicionp);
-		
+
+
 		if($condicionp == 0)
 		{
 			
@@ -193,7 +195,13 @@ class WorkshopsController extends AppController {
 		
 		$condicionn=$this->Workshop->query("select institution_id,workshop_id,workshop_day,workshop_time,travel_time from workshop_session where institution_id = $institutioniidp");
 		*/
+	
+
 		$condicionn=$this->Workshop->query("select group_id,workshop_id,workshop_day,workshop_time,travel_time from workshop_session where group_id = $id_group");
+
+	
+
+	
 		
 		
 		$this->set('condicionn',$condicionn);
@@ -246,7 +254,7 @@ class WorkshopsController extends AppController {
 		
 
 
-		return $this->redirect(array('controller' => 'workshops','action' => 'view_inscription',$id_group));	
+return $this->redirect(array('controller' => 'workshops','action' => 'view_inscription',$id_group));	
 	}
 	
 	public function view_inscription($id_group=null)  {
@@ -879,3 +887,5 @@ class WorkshopsController extends AppController {
 		}
 		return $this->redirect(array('action' => 'index'));
 	}}
+
+

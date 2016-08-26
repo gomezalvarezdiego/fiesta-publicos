@@ -8,12 +8,20 @@
 <div class="WorkshopSession form">
 <?php echo $this->Form->create('WorkshopSession'); ?>
 	<fieldset>
-	<span>Selecciona el taller en que quieres inscribir tu grupo</span>
+	<?php if (isset($hourwork)):  ?>
+		<span> <?php echo "Los siguientes son las carpas con talleres disponibles (De acuerdo a las características del grupo) en el dia: $datework y en el horario: $hourwork"; ?> </span>
+	<?php else: ?>
+		<span> <?php echo "Los siguientes son las carpas con talleres disponibles (De acuerdo a las características del grupo) en el dia: $datework";?> </span>
+	<?php endif;?>
+
+
+	
 	</br></br></br>
 		<legend><?php //echo __('Add Workshop'); ?></legend>
 		<table cellpadding="0" cellspacing="0">
 		<tr>
 			<th><?php echo $this->Paginator->sort('workshop'); ?></th>
+			<th><?php echo $this->Paginator->sort('institución'); ?></th>
 			<th class="actions"><?php echo __('Opciones'); ?></th>
 		</tr>	
 	
@@ -35,9 +43,25 @@
 		 foreach ($taller as $taller): ?>		
 			<tr>
 				<td><?php echo h($taller['name']); ?>&nbsp;</td>
-				<td class="actions">
-					<?php echo $this->Html->link(__('Ver Horarios'), array('controller' => 'workshops','action' => 'workshop_inscription',$taller['id_workshop'],$datework,$id_group)); ?>			
-				</td>
+
+				<td><?php echo h($taller['entity_name']); ?>&nbsp;</td>
+				
+				<?php if (isset($hourwork)):  ?>
+					<td class="actions">
+						<?php 
+						$horataller=$hourwork;
+						$timestamp=strtotime($horataller);
+						echo $this->Html->link(__('Incribirse en este horario'), array('controller' => 'workshops','action' => 'workshop_update',$datework,$timestamp,$id_group,$taller['id_workshop'])); ?>			
+					</td>
+					<td class="actions">
+					<?php echo $this->Html->link(__('Ver otros horarios'), array('controller' => 'workshops','action' => 'workshop_inscription',$taller['id_workshop'],$datework,$id_group)); ?>			
+					</td>
+				<?php else:?>
+					<td class="actions">
+					<?php echo $this->Html->link(__('Inscribirse'), array('controller' => 'workshops','action' => 'workshop_inscription',$taller['id_workshop'],$datework,$id_group)); ?>			
+					</td>
+				<?php endif;?>
+				
 			</tr>
 		<?php endforeach;?>	
 		
