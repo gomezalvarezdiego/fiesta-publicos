@@ -148,6 +148,8 @@ class UsersController extends AppController {
 			endforeach;
 			$Email->to($email_c);
 			$Email->subject('Link para recuperación de contraseña');
+			//Cambiar espacios por simbolo de suma en el nombre de usuario usado en el url
+			$userupd=str_replace(" ", "+", $userupd);
 			$link='http://www.fiestadellibroylacultura.com/publicos/users/updateuserlogin/'.$userupd;
 				//$link='http://aplicaciones.medellin.co/reservasfiestadellibro/users/updateuserlogin/'.$userupd;
 				$mensaje= "\n\n¡Bienvenido!
